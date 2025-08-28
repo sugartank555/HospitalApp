@@ -1,0 +1,10 @@
+﻿@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+<h2>Bảng điều khiển</h2>
+<ul>
+    <li><a asp-area="Dashboard" asp-controller="ManageAppointments" asp-action="Index">Quản lý lịch khám</a></li>
+    <li><a asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">Bác sĩ</a></li>
+    <li><a asp-area="Dashboard" asp-controller="Services" asp-action="Index">Dịch vụ</a></li>
+</ul>
