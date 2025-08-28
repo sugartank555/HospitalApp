@@ -1,0 +1,50 @@
+﻿@model HospitalApp.Models.AppointmentSchedule
+@using HospitalApp.Models.Enums
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Sửa lịch khám";
+}
+<h2>@ViewData["Title"]</h2>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Date" class="form-label"></label>
+        <input asp-for="Date" class="form-control" type="date" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TimeFrame" class="form-label"></label>
+        <input asp-for="TimeFrame" class="form-control" />
+        <span asp-validation-for="TimeFrame" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PatientId" class="form-label">Bệnh nhân</label>
+        <select asp-for="PatientId" class="form-select" asp-items="ViewBag.PatientId"></select>
+        <span asp-validation-for="PatientId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DoctorId" class="form-label">Bác sĩ</label>
+        <select asp-for="DoctorId" class="form-select" asp-items="ViewBag.DoctorId"></select>
+        <span asp-validation-for="DoctorId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label">Trạng thái</label>
+        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<AppointmentStatus>()"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-primary">Lưu</button>
+    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

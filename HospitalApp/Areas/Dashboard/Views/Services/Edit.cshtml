@@ -1,0 +1,10 @@
+﻿@model HospitalApp.Models.Service
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml"; ViewData["Title"] = "Sửa dịch vụ";
+}
+<h2>@ViewData["Title"]</h2>
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <partial name="Create" />
+</form>

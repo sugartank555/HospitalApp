@@ -1,0 +1,16 @@
+﻿@model IEnumerable<HospitalApp.Models.MedicalDepartment>
+@{
+   
+    ViewData["Title"] = "Khoa/Phòng ban";
+}
+<h2>@ViewData["Title"]</h2>
+<div class="list-group">
+    @foreach (var x in Model)
+    {
+        <div class="list-group-item">
+            <h5 class="mb-1">@x.Name</h5>
+            <p class="mb-1 text-muted">@x.Description</p>
+            <a class="small" asp-controller="Catalog" asp-action="Services" asp-route-departmentId="@x.Id">Xem dịch vụ thuộc khoa này</a>
+        </div>
+    }
+</div>

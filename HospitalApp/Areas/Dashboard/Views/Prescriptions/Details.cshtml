@@ -1,0 +1,45 @@
+﻿@model HospitalApp.Models.Prescription
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    var items = (IEnumerable<HospitalApp.Models.MedicineOfPrescription>)ViewBag.Items;
+}
+<h2>Chi tiết toa #@Model.Id</h2>
+<dl class="row">
+    <dt class="col-sm-3">Hồ sơ</dt>
+    <dd class="col-sm-9">@Model.MedicalRecordId</dd>
+    <dt class="col-sm-3">Ngày lập</dt>
+    <dd class="col-sm-9">@Model.CreatedAt</dd>
+</dl>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="mb-0">Thuốc trong toa</h5>
+    <a class="btn btn-sm btn-outline-success" asp-action="Items" asp-route-id="@Model.Id">Thêm thuốc</a>
+</div>
+
+<table class="table">
+    <thead><tr><th>#</th><th>Tên thuốc</th><th>Đơn giá</th><th>Số lượng</th><th>Tạm tính</th></tr></thead>
+    <tbody>
+        @{
+            int i = 1; decimal total = 0m;
+            foreach (var it in items)
+            {
+                var price = it.Medicine?.Price ?? 0m;
+                var sub = price * it.Quantity;
+                total += sub;
+                <tr>
+                    <td>@i</td>
+                    <td>@it.Medicine?.Name</td>
+                    <td>@price</td>
+                    <td>@it.Quantity</td>
+                    <td>@sub</td>
+                </tr>
+                i++;
+            }
+        }
+    </tbody>
+    <tfoot>
+        <tr><th colspan="4" class="text-end">Tổng</th><th>@total</th></tr>
+    </tfoot>
+</table>
+
+<a class="btn btn-secondary" asp-action="Index">Về danh sách</a>

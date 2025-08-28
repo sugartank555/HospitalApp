@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HospitalApp.Data;
 using HospitalApp.Models;          // ApplicationUser
@@ -19,14 +19,18 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false; // bật true nếu bạn dùng xác thực email
+        options.SignIn.RequireConfirmedAccount = false; // bật true nếu dùng xác thực email
         options.Password.RequiredLength = 6;
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // ===== MVC + Razor Pages (Identity UI cần RazorPages) =====
-builder.Services.AddControllersWithViews();
+// Quan trọng: tắt implicit-required cho reference types không-nullable
+builder.Services.AddControllersWithViews(options =>
+{
+    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+});
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -47,7 +51,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();   // <-- BẮT BUỘC: đặt trước Authorization
+app.UseAuthentication();   // phải trước Authorization
 app.UseAuthorization();
 
 // ===== Routes =====

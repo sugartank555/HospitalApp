@@ -1,0 +1,48 @@
+﻿@model HospitalApp.Models.MedicalRecord
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Thêm hồ sơ khám";
+}
+<h2>@ViewData["Title"]</h2>
+<form method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Time" class="form-label"></label>
+        <input asp-for="Time" class="form-control" type="datetime-local" />
+        <span asp-validation-for="Time" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PatientId" class="form-label">Bệnh nhân</label>
+        <select asp-for="PatientId" class="form-select" asp-items="ViewBag.PatientId">
+            <option value="0">— Chọn —</option>
+        </select>
+        <span asp-validation-for="PatientId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DoctorId" class="form-label">Bác sĩ</label>
+        <select asp-for="DoctorId" class="form-select" asp-items="ViewBag.DoctorId">
+            <option value="0">— Chọn —</option>
+        </select>
+        <span asp-validation-for="DoctorId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PaymentStatus" class="form-label"></label>
+        <select asp-for="PaymentStatus" class="form-select" asp-items="ViewBag.PaymentStatus"></select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Status" class="form-label">Trạng thái (tuỳ chọn)</label>
+        <input asp-for="Status" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary">Lưu</button>
+    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

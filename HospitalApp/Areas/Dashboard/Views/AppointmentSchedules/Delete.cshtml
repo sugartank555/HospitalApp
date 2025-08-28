@@ -1,0 +1,12 @@
+﻿@model HospitalApp.Models.AppointmentSchedule
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+}
+<h2>Xoá lịch hẹn</h2>
+<p>Bạn có chắc muốn xoá lịch hẹn #<strong>@Model.Id</strong> (@Model.Date.ToString("dd/MM/yyyy") - @Model.TimeFrame)?</p>
+<form method="post" asp-action="Delete">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button class="btn btn-danger">Xoá</button>
+    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
+</form>

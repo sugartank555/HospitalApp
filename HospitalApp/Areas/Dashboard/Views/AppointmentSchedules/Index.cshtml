@@ -1,0 +1,51 @@
+﻿@model IEnumerable<HospitalApp.Models.AppointmentSchedule>
+@using HospitalApp.Models.Enums
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Lịch khám";
+}
+<h2>@ViewData["Title"]</h2>
+
+<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Ngày</th>
+            <th>Khung giờ</th>
+            <th>Bệnh nhân</th>
+            <th>Bác sĩ</th>
+            <th>Trạng thái</th>
+            <th style="width:220px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Id</td>
+                <td>@x.Date.ToString("dd/MM/yyyy")</td>
+                <td>@x.TimeFrame</td>
+                <td>@x.Patient?.FullName (@x.PatientId)</td>
+                <td>@x.Doctor?.FullName (@x.DoctorId)</td>
+                <td>@x.Status</td>
+                <td>
+                    <form asp-action="UpdateStatus" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@x.Id" />
+                        <select name="status" class="form-select form-select-sm d-inline w-auto">
+                            <option value="@((int)AppointmentStatus.Pending)" selected="@(x.Status == AppointmentStatus.Pending ? "selected" : null)">Pending</option>
+                            <option value="@((int)AppointmentStatus.Confirmed)" selected="@(x.Status == AppointmentStatus.Confirmed ? "selected" : null)">Confirmed</option>
+                            <option value="@((int)AppointmentStatus.Completed)" selected="@(x.Status == AppointmentStatus.Completed ? "selected" : null)">Completed</option>
+                            <option value="@((int)AppointmentStatus.Cancelled)" selected="@(x.Status == AppointmentStatus.Cancelled ? "selected" : null)">Cancelled</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary">Lưu</button>
+                    </form>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@x.Id">Xem</a>
+                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@x.Id">Sửa</a>
+                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

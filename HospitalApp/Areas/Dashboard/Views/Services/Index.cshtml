@@ -1,0 +1,25 @@
+﻿@model IEnumerable<HospitalApp.Models.Service>
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml"; ViewData["Title"] = "Dịch vụ";
+}
+<h2>@ViewData["Title"]</h2>
+<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
+<table class="table table-striped">
+    <thead><tr><th>ID</th><th>Tên</th><th>Khoa</th><th>Giá</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Id</td>
+                <td>@x.Name</td>
+                <td>@x.MedicalDepartment?.Name</td>
+                <td>@x.Price</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@x.Id">Xem</a> |
+                    <a asp-action="Edit" asp-route-id="@x.Id">Sửa</a> |
+                    <a asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

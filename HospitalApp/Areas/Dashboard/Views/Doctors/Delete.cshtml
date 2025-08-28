@@ -1,0 +1,12 @@
+﻿@model HospitalApp.Models.Doctor
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+}
+<h2>Xoá bác sĩ</h2>
+<p>Xoá <strong>@Model.FullName</strong>?</p>
+<form method="post" asp-action="Delete">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button class="btn btn-danger">Xoá</button>
+    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
+</form>

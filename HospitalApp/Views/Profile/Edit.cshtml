@@ -1,0 +1,33 @@
+﻿@model HospitalApp.Models.Patient
+@{
+   
+    ViewData["Title"] = "Hồ sơ của tôi";
+}
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success">@TempData["Msg"]</div>
+}
+
+<form method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <div class="col-md-4">
+        <label asp-for="DateOfBirth" class="form-label">Ngày sinh</label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Ethnic" class="form-label">Dân tộc</label>
+        <input asp-for="Ethnic" class="form-control" />
+        <span asp-validation-for="Ethnic" class="text-danger"></span>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary">Lưu</button>
+        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

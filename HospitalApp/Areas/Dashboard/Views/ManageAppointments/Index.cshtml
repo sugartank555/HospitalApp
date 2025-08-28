@@ -1,0 +1,59 @@
+﻿@model IEnumerable<HospitalApp.Models.AppointmentSchedule>
+@using HospitalApp.Models.Enums
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Quản lý lịch khám";
+}
+<h2>@ViewData["Title"]</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Ngày</th>
+            <th>Giờ</th>
+            <th>BN</th>
+            <th>BS</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Id</td>
+                <td>@x.Date.ToString("dd/MM/yyyy")</td>
+                <td>@x.TimeFrame</td>
+                <td>@x.PatientId</td>
+                <td>@x.Doctor.FullName</td>
+                <td>@x.Status</td>
+                <td>
+                    <form method="post" asp-action="UpdateStatus" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@x.Id" />
+                        <select name="status" class="form-select form-select-sm d-inline w-auto">
+                            <option value="@((int)AppointmentStatus.Pending)"
+                                    selected="@(x.Status == AppointmentStatus.Pending ? "selected" : null)">
+                                Pending
+                            </option>
+                            <option value="@((int)AppointmentStatus.Confirmed)"
+                                    selected="@(x.Status == AppointmentStatus.Confirmed ? "selected" : null)">
+                                Confirmed
+                            </option>
+                            <option value="@((int)AppointmentStatus.Completed)"
+                                    selected="@(x.Status == AppointmentStatus.Completed ? "selected" : null)">
+                                Completed
+                            </option>
+                            <option value="@((int)AppointmentStatus.Cancelled)"
+                                    selected="@(x.Status == AppointmentStatus.Cancelled ? "selected" : null)">
+                                Cancelled
+                            </option>
+                        </select>
+                        <button class="btn btn-sm btn-primary">Lưu</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,41 @@
+﻿@model IEnumerable<HospitalApp.Models.Service>
+@{
+  
+    ViewData["Title"] = "Dịch vụ";
+    var deps = (IEnumerable<HospitalApp.Models.MedicalDepartment>)ViewBag.Departments;
+    int? selectedDep = ViewBag.SelectedDepartmentId as int?;
+}
+<h2>@ViewData["Title"]</h2>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <select name="departmentId" class="form-select">
+            <option value="">— Tất cả khoa —</option>
+            @foreach (var d in deps)
+            {
+                <option value="@d.Id"
+                        selected="@(selectedDep.HasValue && selectedDep.Value == d.Id ? "selected" : null)">
+                    @d.Name
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Lọc</button>
+    </div>
+</form>
+
+<div class="row g-3">
+    @foreach (var s in Model)
+    {
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5>@s.Name</h5>
+                    <div class="small text-muted">@s.MedicalDepartment?.Name</div>
+                    <div class="mt-2 fw-bold">@s.Price</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

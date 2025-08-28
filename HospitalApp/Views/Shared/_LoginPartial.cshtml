@@ -1,30 +1,22 @@
 ﻿@using HospitalApp.Models
 @using Microsoft.AspNetCore.Identity
 @inject SignInManager<ApplicationUser> SignInManager
-@inject UserManager<ApplicationUser> UserManager
-@{
-    Layout = "_LayoutHome";
-}
 
-<ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+    <div class="d-flex align-items-center gap-2">
+        <span class="me-2">Xin chào, @User.Identity?.Name</span>
+        <form method="post" asp-area="Identity" asp-page="/Account/Logout"
+              asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
+              class="m-0">
+            <button type="submit" class="btn btn-sm btn-danger">Đăng xuất</button>
         </form>
-    </li>
+    </div>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
-    </li>
+    <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-sm btn-outline-primary" asp-area="Identity" asp-page="/Account/Register">Đăng ký</a>
+        <a class="btn btn-sm btn-primary" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
+    </div>
 }
-</ul>

@@ -1,50 +1,240 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@* Views/Shared/_Layout.cshtml *@
+<!doctype html>
+<html class="no-js" lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - HospitalApp</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/HospitalApp.styles.css" asp-append-version="true" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="keywords" content="medical, clinic, hospital, booking" />
+    <meta name="description" content="Mediplus - Medical & Doctor Directory" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <title>@ViewData["Title"] - Mediplus</title>
+
+    <link rel="icon" href="~/img/favicon.png" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/nice-select.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/font-awesome.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/icofont.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/slicknav.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/owl-carousel.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/datepicker.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/animate.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/magnific-popup.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/css/normalize.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/style.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/responsive.css" asp-append-version="true" />
+
+    @RenderSection("Styles", required: false)
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HospitalApp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="loader">
+            <div class="loader-outter"></div>
+            <div class="loader-inner"></div>
+            <div class="indicator">
+                <svg width="16" height="12" viewBox="0 0 16 12">
+                    <polyline id="back" points="1 6 4 6 6 11 10 1 12 6 15 6"></polyline>
+                    <polyline id="front" points="1 6 4 6 6 11 10 1 12 6 15 6"></polyline>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <!-- Header -->
+    <header class="header">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div class="container">
+                <div class="row align-items-center">
+                    <!-- Left -->
+                    <div class="col-lg-6 col-md-6 col-12">
+                        <ul class="top-link d-flex align-items-center gap-3 mb-0 list-unstyled">
+                            <li><a asp-controller="Home" asp-action="About">About</a></li>
+                            <li><a asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
+                            <li><a asp-controller="Catalog" asp-action="Services">Services</a></li>
+                            <li><a asp-controller="Catalog" asp-action="Departments">Departments</a></li>
+                            <li><a asp-controller="Contact" asp-action="Index">Contact</a></li>
+                            <li><a asp-controller="Home" asp-action="Faq">FAQ</a></li>
+
+                            @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
+                            {
+                                <li><a asp-area="Dashboard" asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- Right -->
+                    <div class="col-lg-6 col-md-6 col-12 d-flex justify-content-lg-end align-items-center gap-4">
+                        <ul class="top-contact d-flex align-items-center gap-4 mb-0 list-unstyled">
+                            <li><i class="fa fa-phone"></i> +880 1234 56789</li>
+                        </ul>
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+        </div>
+        <!-- Header Inner -->
+        <div class="header-inner">
+            <div class="container">
+                <div class="inner">
+                    <div class="row align-items-center">
+                        <!-- Logo -->
+                        <div class="col-lg-3 col-md-3 col-12">
+                            <div class="logo">
+                                <a asp-area="" asp-controller="Home" asp-action="Index">
+                                    <img src="~/img/logo.png" alt="Logo" asp-append-version="true" />
+                                </a>
+                            </div>
+                            <div class="mobile-nav"></div>
+                        </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - HospitalApp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <!-- Main Menu -->
+                        <div class="col-lg-7 col-md-9 col-12">
+                            <div class="main-menu">
+                                <nav class="navigation">
+                                    <ul class="nav menu d-flex align-items-center gap-3 list-unstyled mb-0">
+                                        <li class="active">
+                                            <a asp-controller="Home" asp-action="Index">Home</a>
+                                        </li>
+                                        <li><a asp-controller="Catalog" asp-action="Departments">Departments</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Services">Services</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
+                                        <li><a asp-controller="Contact" asp-action="Index">Contact</a></li>
+
+                                        <!-- Đẩy sang phải trên màn lớn -->
+                                        <li class="ms-lg-auto nav-item">
+                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Create">Đặt lịch</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="My">Lịch của tôi</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+
+                        <!-- Slot trống (search/button) -->
+                        <div class="col-lg-2 col-12"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer id="footer" class="footer">
+        <div class="footer-top">
+            <div class="container">
+                <div class="row">
+                    <!-- About -->
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <div class="single-footer">
+                            <h2>About Us</h2>
+                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit do eiusmod tempor incididunt ut labore dolore magna.</p>
+                            <ul class="social">
+                                <li><a href="#"><i class="icofont-facebook"></i></a></li>
+                                <li><a href="#"><i class="icofont-google-plus"></i></a></li>
+                                <li><a href="#"><i class="icofont-twitter"></i></a></li>
+                                <li><a href="#"><i class="icofont-vimeo"></i></a></li>
+                                <li><a href="#"><i class="icofont-pinterest"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Quick Links -->
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <div class="single-footer f-link">
+                            <h2>Quick Links</h2>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-6 col-12">
+                                    <ul>
+                                        <li><a asp-controller="Home" asp-action="Index"><i class="fa fa-caret-right"></i>Home</a></li>
+                                        <li><a asp-controller="Home" asp-action="About"><i class="fa fa-caret-right"></i>About Us</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Services"><i class="fa fa-caret-right"></i>Services</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Departments"><i class="fa fa-caret-right"></i>Departments</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Doctors"><i class="fa fa-caret-right"></i>Doctors</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-lg-6 col-md-6 col-12">
+                                    <ul>
+                                        <li><a asp-controller="Booking" asp-action="Create"><i class="fa fa-caret-right"></i>Book Now</a></li>
+                                        <li><a asp-controller="Booking" asp-action="MyAppointments"><i class="fa fa-caret-right"></i>My Appointments</a></li>
+                                        <li><a asp-controller="Home" asp-action="Faq"><i class="fa fa-caret-right"></i>FAQ</a></li>
+                                        <li><a asp-controller="Contact" asp-action="Index"><i class="fa fa-caret-right"></i>Contact Us</a></li>
+                                        @* <li><a href="#"><i class="fa fa-caret-right"></i>Other Links</a></li> *@
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Open Hours -->
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <div class="single-footer">
+                            <h2>Open Hours</h2>
+                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit do eiusmod tempor incididunt.</p>
+                            <ul class="time-sidual">
+                                <li class="day">Monday - Friday <span>8.00-20.00</span></li>
+                                <li class="day">Saturday <span>9.00-18.30</span></li>
+                                <li class="day">Sunday <span>9.00-15.00</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Newsletter -->
+                    <div class="col-lg-3 col-md-6 col-12">
+                        <div class="single-footer">
+                            <h2>Newsletter</h2>
+                            <p>Subscribe to get our latest updates via email.</p>
+                            <form action="#" method="post" class="newsletter-inner">
+                                <input name="email" placeholder="Email Address" class="common-input" onfocus="this.placeholder=''" onblur="this.placeholder='Email Address'" required type="email" />
+                                <button class="button" type="submit"><i class="icofont icofont-paper-plane"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div><!--/row-->
+            </div>
+        </div>
+
+        <div class="copyright">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="copyright-content">
+                            <p>© @DateTime.Now.Year | All Rights Reserved by <a href="https://www.wpthemesgrid.com" target="_blank" rel="noopener">wpthemesgrid.com</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- JS -->
+    <script src="~/js/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery-migrate-3.0.0.js" asp-append-version="true"></script>
+    <script src="~/js/jquery-ui.min.js" asp-append-version="true"></script>
+    <script src="~/js/easing.js" asp-append-version="true"></script>
+    <script src="~/js/colors.js" asp-append-version="true"></script>
+    <script src="~/js/popper.min.js" asp-append-version="true"></script>
+    <script src="~/js/bootstrap-datepicker.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.nav.js" asp-append-version="true"></script>
+    <script src="~/js/slicknav.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.scrollUp.min.js" asp-append-version="true"></script>
+    <script src="~/js/niceselect.js" asp-append-version="true"></script>
+    <script src="~/js/tilt.jquery.min.js" asp-append-version="true"></script>
+    <script src="~/js/owl-carousel.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.counterup.min.js" asp-append-version="true"></script>
+    <script src="~/js/steller.js" asp-append-version="true"></script>
+    <script src="~/js/wow.min.js" asp-append-version="true"></script>
+    <script src="~/js/jquery.magnific-popup.min.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/2.0.3/waypoints.min.js" crossorigin="anonymous"></script>
+    <script src="~/js/bootstrap.min.js" asp-append-version="true"></script>
+    <script src="~/js/main.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

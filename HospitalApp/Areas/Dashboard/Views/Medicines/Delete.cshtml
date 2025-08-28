@@ -1,0 +1,15 @@
+﻿@model HospitalApp.Models.Medicine
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Xoá thuốc";
+}
+<h2>@ViewData["Title"]</h2>
+
+<p>Bạn có chắc muốn xoá thuốc <strong>@Model.Name</strong> (#@Model.Id)?</p>
+
+<form method="post" asp-action="Delete">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <button class="btn btn-danger">Xoá</button>
+    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
+</form>

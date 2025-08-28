@@ -1,0 +1,26 @@
+﻿@model IEnumerable<HospitalApp.Models.Prescription>
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Toa thuốc";
+}
+<h2>@ViewData["Title"]</h2>
+<p><a class="btn btn-primary" asp-action="Create">+ Thêm toa</a></p>
+<table class="table table-striped">
+    <thead><tr><th>ID</th><th>Hồ sơ</th><th>Ngày lập</th><th></th></tr></thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Id</td>
+                <td>@x.MedicalRecordId</td>
+                <td>@x.CreatedAt</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-success" asp-action="Items" asp-route-id="@x.Id">Thêm thuốc</a>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@x.Id">Xem</a>
+                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@x.Id">Sửa</a>
+                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

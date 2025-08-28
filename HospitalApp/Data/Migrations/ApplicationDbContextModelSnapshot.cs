@@ -361,7 +361,13 @@ namespace HospitalApp.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Ethnic")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
@@ -481,10 +487,12 @@ namespace HospitalApp.Data.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("PositionId")
                         .HasColumnType("int");

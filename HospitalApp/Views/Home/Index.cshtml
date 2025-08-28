@@ -1,8 +1,44 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+   
+    ViewData["Title"] = "Trang chủ";
+    var doctors = (IEnumerable<HospitalApp.Models.Doctor>)ViewBag.Doctors;
+    var services = (IEnumerable<HospitalApp.Models.Service>)ViewBag.Services;
 }
+<div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container py-5">
+        <h1 class="display-6">Đặt lịch khám nhanh chóng</h1>
+        <p class="col-md-8 fs-5">Chọn bác sĩ, chọn thời gian phù hợp — xác nhận trong 1 bước.</p>
+        <a class="btn btn-primary btn-lg" asp-controller="Appointments" asp-action="Create">Đặt lịch ngay</a>
+    </div>
+</div>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h3 class="mb-3">Bác sĩ nổi bật</h3>
+<div class="row g-3 mb-4">
+    @foreach (var d in doctors)
+    {
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@d.FullName</h5>
+                    <p class="card-text text-muted">BS ID: @d.Id</p>
+                    <a class="btn btn-sm btn-outline-primary" asp-controller="Catalog" asp-action="Doctors">Xem danh sách</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<h3 class="mb-3">Dịch vụ phổ biến</h3>
+<div class="row g-3">
+    @foreach (var s in services)
+    {
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">@s.Name</h5>
+                    <p class="card-text">@s.MedicalDepartment?.Name</p>
+                </div>
+            </div>
+        </div>
+    }
 </div>

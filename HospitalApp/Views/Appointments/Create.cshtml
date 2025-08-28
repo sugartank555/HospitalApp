@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Đặt lịch khám";
+    var doctors = (IEnumerable<HospitalApp.Models.Doctor>)ViewBag.Doctors;
+}
+<h2>@ViewData["Title"]</h2>
+<form method="post" class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label">Ngày khám</label>
+        <input type="date" name="date" class="form-control" required />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Khung giờ</label>
+        <input name="timeFrame" class="form-control" placeholder="08:00-09:00" required />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label">Bác sĩ</label>
+        <select name="doctorId" class="form-select" required>
+            @foreach (var d in doctors)
+            {
+                <option value="@d.Id">@d.FullName</option>
+            }
+        </select>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary">Gửi yêu cầu</button>
+        <a asp-controller="Appointments" asp-action="My" class="btn btn-outline-secondary">Lịch của tôi</a>
+    </div>
+</form>

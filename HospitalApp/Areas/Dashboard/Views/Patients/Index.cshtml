@@ -1,0 +1,38 @@
+﻿@model IEnumerable<HospitalApp.Models.Patient>
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Bệnh nhân";
+}
+<h2>@ViewData["Title"]</h2>
+
+<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Họ tên</th>
+            <th>Ngày sinh</th>
+            <th>Dân tộc</th>
+            <th>Tài khoản</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Id</td>
+                <td>@x.FullName</td>
+                <td>@(x.DateOfBirth?.ToString("dd/MM/yyyy"))</td>
+                <td>@x.Ethnic</td>
+                <td>@(x.User?.UserName ?? x.User?.Email ?? "-")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@x.Id">Xem</a> |
+                    <a asp-action="Edit" asp-route-id="@x.Id">Sửa</a> |
+                    <a asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

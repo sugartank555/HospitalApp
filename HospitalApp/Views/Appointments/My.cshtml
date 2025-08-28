@@ -1,0 +1,20 @@
+﻿@model IEnumerable<HospitalApp.Models.AppointmentSchedule>
+<h2>Lịch khám của tôi</h2>
+@if (TempData["ok"] != null)
+{
+    <div class="alert alert-success">@TempData["ok"]</div>
+}
+<table class="table">
+    <thead><tr><th>Ngày</th><th>Khung giờ</th><th>Bác sĩ</th><th>Trạng thái</th></tr></thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Date:dd/MM/yyyy</td>
+                <td>@x.TimeFrame</td>
+                <td>@x.Doctor.FullName</td>
+                <td>@x.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>

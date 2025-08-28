@@ -1,0 +1,45 @@
+﻿@model IEnumerable<HospitalApp.Models.Medicine>
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Thuốc";
+}
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success">@TempData["Msg"]</div>
+}
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">+ Thêm thuốc</a>
+</p>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th style="width:80px;">ID</th>
+            <th>Tên thuốc</th>
+            <th style="width:180px;">Giá</th>
+            <th style="width:220px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model)
+        {
+            <tr>
+                <td>@x.Id</td>
+                <td>@x.Name</td>
+                <td>@x.Price</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@x.Id">Xem</a>
+                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@x.Id">Sửa</a>
+                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
