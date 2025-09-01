@@ -14,9 +14,61 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _db;
         public PrescriptionsController(ApplicationDbContext db) => _db = db;
 
-        // ===== CRUD cơ bản =====
-        public async Task<IActionResult> Index()
-            => View(await _db.Prescriptions.Include(p => p.MedicalRecord).AsNoTracking().ToListAsync());
+        // GET: /Dashboard/Prescriptions
+        public async Task<IActionResult> Index(string? search, string? sortOrder)
+        {
+            var q = _db.Prescriptions
+                .Include(p => p.MedicalRecord)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // ===== TÌM KIẾM =====
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+
+                // Nếu nhập ngày -> lọc theo CreatedAt.Date
+                if (DateTime.TryParse(k, out var dt))
+                {
+                    var d = dt.Date;
+                    q = q.Where(p => p.CreatedAt.Date == d
+                                     || p.MedicalRecordId.ToString() == k
+                                     || p.Id.ToString() == k);
+                }
+                // Nếu nhập số -> thử coi như Id hoặc MedicalRecordId
+                else if (int.TryParse(k, out var num))
+                {
+                    q = q.Where(p => p.Id == num || p.MedicalRecordId == num);
+                }
+                else
+                {
+                    // (tuỳ chọn) Không có tên/ghi chú trong model, nên chỉ giữ tìm theo ngày/ID/MRId.
+                    // Nếu muốn tìm theo tên thuốc trong toa, cần Join sang Medicines (tốn hơn).
+                }
+
+                ViewData["Search"] = k; // giữ lại trên ô input
+            }
+
+            // ===== SẮP XẾP =====
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["DateSort"] = string.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
+            ViewData["IdSort"] = sortOrder == "id" ? "id_desc" : "id";
+            ViewData["MrSort"] = sortOrder == "mr" ? "mr_desc" : "mr";
+
+            q = sortOrder switch
+            {
+                "date_desc" => q.OrderByDescending(p => p.CreatedAt),
+                "id" => q.OrderBy(p => p.Id),
+                "id_desc" => q.OrderByDescending(p => p.Id),
+                "mr" => q.OrderBy(p => p.MedicalRecordId).ThenByDescending(p => p.CreatedAt),
+                "mr_desc" => q.OrderByDescending(p => p.MedicalRecordId).ThenByDescending(p => p.CreatedAt),
+                _ => q.OrderBy(p => p.CreatedAt) // mặc định: cũ -> mới (đổi sang Desc nếu thích)
+            };
+
+            var data = await q.ToListAsync();
+            return View(data);
+        }
+
 
         public async Task<IActionResult> Details(int? id)
         {

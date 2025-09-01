@@ -15,11 +15,87 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _db;
         public MedicalRecordsController(ApplicationDbContext db) => _db = db;
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, string? sortOrder, int page = 1)
         {
-            var q = _db.MedicalRecords.Include(m => m.Patient).Include(m => m.Doctor).AsNoTracking();
-            return View(await q.ToListAsync());
+            const int pageSize = 10;
+
+            var q = _db.MedicalRecords
+                .Include(m => m.Patient)
+                .Include(m => m.Doctor)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // ===== TÌM KIẾM =====
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+
+                if (DateTime.TryParse(k, out var dt))
+                {
+                    var d = dt.Date;
+                    q = q.Where(m => m.Time.Date == d);
+                }
+                else
+                {
+                    bool tryPay(string s, out PaymentStatus val) => Enum.TryParse(s, true, out val);
+
+                    if (tryPay(k, out var pay))
+                    {
+                        q = q.Where(m => m.PaymentStatus == pay);
+                    }
+                    else
+                    {
+                        q = q.Where(m =>
+                            (m.Patient.FullName != null && m.Patient.FullName.Contains(k)) ||
+                            (m.Doctor.FullName != null && m.Doctor.FullName.Contains(k)));
+                    }
+                }
+
+                ViewData["Search"] = k;
+            }
+
+            // Tổng trước khi trang
+            var totalItems = await q.CountAsync();
+
+            // ===== SẮP XẾP =====
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["TimeSort"] = string.IsNullOrEmpty(sortOrder) ? "time_desc" : "";
+            ViewData["PatientSort"] = sortOrder == "patient" ? "patient_desc" : "patient";
+            ViewData["DoctorSort"] = sortOrder == "doctor" ? "doctor_desc" : "doctor";
+            ViewData["PaySort"] = sortOrder == "pay" ? "pay_desc" : "pay";
+
+            q = sortOrder switch
+            {
+                "time_desc" => q.OrderByDescending(m => m.Time),
+                "patient" => q.OrderBy(m => m.Patient.FullName).ThenByDescending(m => m.Time),
+                "patient_desc" => q.OrderByDescending(m => m.Patient.FullName).ThenByDescending(m => m.Time),
+                "doctor" => q.OrderBy(m => m.Doctor.FullName).ThenByDescending(m => m.Time),
+                "doctor_desc" => q.OrderByDescending(m => m.Doctor.FullName).ThenByDescending(m => m.Time),
+                "pay" => q.OrderBy(m => m.PaymentStatus).ThenByDescending(m => m.Time),
+                "pay_desc" => q.OrderByDescending(m => m.PaymentStatus).ThenByDescending(m => m.Time),
+                _ => q.OrderByDescending(m => m.Time)
+            };
+
+            // ===== PHÂN TRANG =====
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+
+            var data = await q
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewData["Page"] = page;
+            ViewData["TotalPages"] = totalPages;
+            ViewData["PageSize"] = pageSize;
+            ViewData["TotalItems"] = totalItems;
+
+            return View(data);
         }
+
+
 
         public IActionResult Create() { LoadDrop(); return View(new MedicalRecord { Time = DateTime.Now }); }
 

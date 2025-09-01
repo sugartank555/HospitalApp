@@ -22,14 +22,20 @@ namespace HospitalApp.Controllers
         // GET: /Appointments/Create
         public async Task<IActionResult> Create()
         {
+            var user = await _userMgr.GetUserAsync(User);
+            var patient = user != null
+                ? await _db.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == user.Id)
+                : null;
+
             ViewBag.Doctors = await _db.Doctors.AsNoTracking().OrderBy(x => x.FullName).ToListAsync();
+            ViewBag.PatientName = patient?.FullName ?? (user?.UserName ?? user?.Email ?? "");
             return View();
         }
 
         // POST: /Appointments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(DateTime date, string timeFrame, int doctorId)
+        public async Task<IActionResult> Create(DateTime date, string timeFrame, int doctorId, string? patientName)
         {
             var user = await _userMgr.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -45,17 +51,14 @@ namespace HospitalApp.Controllers
             // Nếu không hợp lệ → trả lại view với dữ liệu đã nhập
             if (!ModelState.IsValid)
             {
-                ViewBag.Doctors = await _db.Doctors.AsNoTracking().OrderBy(x => x.FullName).ToListAsync();
-                ViewBag.SelectedDoctorId = doctorId;
-                ViewBag.Date = date.ToString("yyyy-MM-dd");
-                ViewBag.TimeFrame = timeFrame;
+                await FillCreateViewBagsAsync(doctorId, date, timeFrame, patientName);
                 return View();
             }
 
-            // --------- Đảm bảo có Patient gắn với user & có FullName hợp lệ ----------
-            var patientId = await EnsurePatientProfileAsync(user);
+            // --------- Đảm bảo có Patient gắn với user & cập nhật tên nếu được nhập ----------
+            var patientId = await EnsurePatientProfileAsync(user, patientName);
 
-            // --------- Chặn trùng lịch theo Bác sĩ + Ngày + Khung giờ (khác Hủy) ----------
+            // --------- Chặn trùng lịch (Bác sĩ + Ngày + Khung giờ; bỏ qua lịch Cancelled) ----------
             var tf = timeFrame.Trim();
             bool exists = await _db.AppointmentSchedules.AnyAsync(x =>
                 x.DoctorId == doctorId
@@ -66,10 +69,7 @@ namespace HospitalApp.Controllers
             if (exists)
             {
                 ModelState.AddModelError("", "Khung giờ này đã kín. Vui lòng chọn khung khác.");
-                ViewBag.Doctors = await _db.Doctors.AsNoTracking().OrderBy(x => x.FullName).ToListAsync();
-                ViewBag.SelectedDoctorId = doctorId;
-                ViewBag.Date = date.ToString("yyyy-MM-dd");
-                ViewBag.TimeFrame = timeFrame;
+                await FillCreateViewBagsAsync(doctorId, date, timeFrame, patientName);
                 return View();
             }
 
@@ -101,46 +101,86 @@ namespace HospitalApp.Controllers
                 .Select(p => p.Id)
                 .FirstOrDefaultAsync();
 
-            // Nếu chưa có hồ sơ thì trả danh sách rỗng
-            var data = await _db.AppointmentSchedules
-                .Include(x => x.Doctor).ThenInclude(d => d.Position)
-                .Where(x => x.PatientId == patientId)
-                .OrderByDescending(x => x.Date)
-                .AsNoTracking()
-                .ToListAsync();
+            var data = Enumerable.Empty<AppointmentSchedule>();
+            if (patientId != 0)
+            {
+                data = await _db.AppointmentSchedules
+                    .Include(x => x.Doctor).ThenInclude(d => d.Position)
+                    .Where(x => x.PatientId == patientId)
+                    .OrderByDescending(x => x.Date)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
 
             return View(data);
         }
 
         // ================= Helpers =================
 
+        private async Task FillCreateViewBagsAsync(int doctorId, DateTime date, string timeFrame, string? patientName)
+        {
+            ViewBag.Doctors = await _db.Doctors.AsNoTracking().OrderBy(x => x.FullName).ToListAsync();
+            ViewBag.SelectedDoctorId = doctorId;
+            ViewBag.Date = date.ToString("yyyy-MM-dd");
+            ViewBag.TimeFrame = timeFrame;
+            ViewBag.PatientName = patientName ?? "";
+        }
+
         /// <summary>
-        /// Lấy (hoặc tạo) Patient theo User hiện tại và đảm bảo luôn có FullName (tránh lỗi DB NOT NULL).
+        /// Lấy (hoặc tạo) Patient theo User hiện tại. Có thể cập nhật FullName nếu người dùng nhập.
+        /// Bản an toàn chống trùng IX_Patients_UserId do race-condition.
         /// </summary>
-        private async Task<int> EnsurePatientProfileAsync(ApplicationUser user)
+        private async Task<int> EnsurePatientProfileAsync(ApplicationUser user, string? newDisplayName)
         {
             var patient = await _db.Patients.FirstOrDefaultAsync(p => p.UserId == user.Id);
-            string displayName = !string.IsNullOrWhiteSpace(user.UserName)
-                                    ? user.UserName!
-                                    : (!string.IsNullOrWhiteSpace(user.Email) ? user.Email! : "Khách");
 
-            if (patient == null)
+            string fallback = !string.IsNullOrWhiteSpace(user.UserName)
+                                ? user.UserName!
+                                : (!string.IsNullOrWhiteSpace(user.Email) ? user.Email! : "Khách");
+
+            string desiredName = !string.IsNullOrWhiteSpace(newDisplayName)
+                                    ? newDisplayName!.Trim()
+                                    : (patient?.FullName ?? fallback);
+
+            if (patient != null)
             {
-                patient = new Patient
+                if (string.IsNullOrWhiteSpace(patient.FullName) ||
+                    (!string.IsNullOrWhiteSpace(newDisplayName) && !string.Equals(patient.FullName, desiredName, StringComparison.Ordinal)))
                 {
-                    UserId = user.Id,
-                    FullName = displayName
-                };
-                _db.Patients.Add(patient);
-                await _db.SaveChangesAsync();
-            }
-            else if (string.IsNullOrWhiteSpace(patient.FullName))
-            {
-                patient.FullName = displayName;
-                await _db.SaveChangesAsync();
+                    patient.FullName = desiredName;
+                    await _db.SaveChangesAsync();
+                }
+                return patient.Id;
             }
 
-            return patient.Id;
+            // Chưa có -> tạo mới (có thể xảy ra race)
+            patient = new Patient
+            {
+                UserId = user.Id,
+                FullName = desiredName
+            };
+            _db.Patients.Add(patient);
+            try
+            {
+                await _db.SaveChangesAsync();
+                return patient.Id;
+            }
+            catch (DbUpdateException ex) when (
+                ex.InnerException is Microsoft.Data.SqlClient.SqlException sql &&
+                sql.Message.Contains("IX_Patients_UserId"))
+            {
+                // Bị tạo đồng thời ở request khác -> lấy lại và cập nhật tên nếu cần
+                var existing = await _db.Patients.FirstOrDefaultAsync(p => p.UserId == user.Id);
+                if (existing == null) throw;
+
+                if (!string.IsNullOrWhiteSpace(newDisplayName) &&
+                    !string.Equals(existing.FullName, desiredName, StringComparison.Ordinal))
+                {
+                    existing.FullName = desiredName;
+                    await _db.SaveChangesAsync();
+                }
+                return existing.Id;
+            }
         }
     }
 }

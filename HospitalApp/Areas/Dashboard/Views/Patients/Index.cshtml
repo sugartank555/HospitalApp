@@ -3,36 +3,98 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Bệnh nhân";
 }
-<h2>@ViewData["Title"]</h2>
+<h2 class="mb-3">@ViewData["Title"]</h2>
 
-<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success">@TempData["Msg"]</div>
+}
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Họ tên</th>
-            <th>Ngày sinh</th>
-            <th>Dân tộc</th>
-            <th>Tài khoản</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var x in Model)
-        {
-            <tr>
-                <td>@x.Id</td>
-                <td>@x.FullName</td>
-                <td>@(x.DateOfBirth?.ToString("dd/MM/yyyy"))</td>
-                <td>@x.Ethnic</td>
-                <td>@(x.User?.UserName ?? x.User?.Email ?? "-")</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@x.Id">Xem</a> |
-                    <a asp-action="Edit" asp-route-id="@x.Id">Sửa</a> |
-                    <a asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<p>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fas fa-user-plus"></i> Thêm bệnh nhân
+    </a>
+</p>
+@{
+    var search = ViewData["Search"] as string;
+}
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="search" value="@search"
+               class="form-control"
+               placeholder="Nhập tên/SĐT/Email bệnh nhân..." />
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Tìm kiếm
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+        </a>
+    </div>
+</form>
+
+@if (!(Model?.Any() ?? false))
+{
+    <div class="alert alert-info">Chưa có bệnh nhân nào.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:80px;">ID</th>
+                    <th>Họ tên</th>
+                    <th style="width:140px;">Ngày sinh</th>
+                    <th style="width:160px;">Dân tộc</th>
+                    <th style="width:260px;">Tài khoản</th>
+                    <th style="width:180px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var x in Model)
+                {
+                    <tr>
+                        <td>@x.Id</td>
+                        <td>
+                            @(
+                                                string.IsNullOrWhiteSpace(x.FullName)
+                                                ? (x.User?.UserName ?? x.User?.Email ?? "(Chưa có)")
+                                                : x.FullName
+                                                )
+                    </td>
+                    <td>@(x.DateOfBirth?.ToString("dd/MM/yyyy"))</td>
+                    <td>@x.Ethnic</td>
+                    <td>
+                    @if (!string.IsNullOrEmpty(x.UserId))
+                            {
+                                <span class="badge bg-success">Đã liên kết</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Khách</span>
+                            }
+                            <div class="small text-muted mt-1">
+                                @(x.User?.UserName ?? x.User?.Email ?? "-")
+                            </div>
+                        </td>
+                        <td class="text-nowrap">
+                            <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@x.Id">
+                                <i class="fas fa-eye"></i> Xem
+                            </a>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@x.Id">
+                                <i class="fas fa-edit"></i> Sửa
+                            </a>
+                            <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">
+                                <i class="fas fa-trash-alt"></i> Xoá
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

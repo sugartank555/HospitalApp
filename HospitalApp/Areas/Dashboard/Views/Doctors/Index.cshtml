@@ -1,26 +1,85 @@
 ﻿@model IEnumerable<HospitalApp.Models.Doctor>
 @{
-    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml"; ViewData["Title"] = "Bác sĩ";
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Bác sĩ";
 }
-<h2>@ViewData["Title"]</h2>
-<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
-<table class="table">
-    <thead><tr><th>ID</th><th>Họ tên</th><th>Điện thoại</th><th>Chức danh</th><th>Chuyên môn</th><th></th></tr></thead>
-    <tbody>
-        @foreach (var x in Model)
-        {
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<p>
+    <a class="btn btn-primary"
+       asp-area="Dashboard" asp-controller="Doctors" asp-action="Create">
+        <i class="fas fa-user-md"></i> Thêm bác sĩ
+    </a>
+</p>
+@{
+    var search = ViewData["Search"] as string;
+}
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="search" value="@search"
+               class="form-control"
+               placeholder="Nhập tên/SĐT/chức danh/chuyên môn/username/email..." />
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Tìm kiếm
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+        </a>
+    </div>
+</form>
+
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Chưa có bác sĩ nào.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
             <tr>
-                <td>@x.Id</td>
-                <td>@x.FullName</td>
-                <td>@x.PhoneNumber</td>
-                <td>@x.Position?.Name</td>
-                <td>@x.Expertise?.Name</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@x.Id">Xem</a> |
-                    <a asp-action="Edit" asp-route-id="@x.Id">Sửa</a> |
-                    <a asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
-                </td>
+                <th>ID</th>
+                <th>Họ tên</th>
+                <th>Điện thoại</th>
+                <th>Chức danh</th>
+                <th>Chuyên môn</th>
+                <th style="width:200px"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.Id</td>
+                    <td>@x.FullName</td>
+                    <td>@x.PhoneNumber</td>
+                    <td>@(x.Position?.Name ?? "-")</td>
+                    <td>@(x.Expertise?.Name ?? "-")</td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-sm btn-outline-info"
+                           asp-area="Dashboard" asp-controller="Doctors" asp-action="Details" asp-route-id="@x.Id">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary"
+                           asp-area="Dashboard" asp-controller="Doctors" asp-action="Edit" asp-route-id="@x.Id">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger"
+                           asp-area="Dashboard" asp-controller="Doctors" asp-action="Delete" asp-route-id="@x.Id">
+                            <i class="fas fa-trash-alt"></i> Xoá
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

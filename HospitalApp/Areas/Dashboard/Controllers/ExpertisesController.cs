@@ -13,8 +13,35 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _context;
         public ExpertisesController(ApplicationDbContext context) => _context = context;
 
-        public async Task<IActionResult> Index()
-            => View(await _context.Expertises.AsNoTracking().ToListAsync());
+        // GET: Dashboard/Expertises
+        public async Task<IActionResult> Index(string? search)
+        {
+            var q = _context.Expertises
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+
+                if (int.TryParse(k, out var id))
+                {
+                    q = q.Where(e => e.Id == id || e.Name.Contains(k));
+                }
+                else
+                {
+                    q = q.Where(e => e.Name.Contains(k));
+                    // Hoặc dùng EF.Functions.Like nếu muốn LIKE SQL: 
+                    // q = q.Where(e => EF.Functions.Like(e.Name, $"%{k}%"));
+                }
+
+                ViewData["Search"] = k; // để giữ lại giá trị search
+            }
+
+            var data = await q.ToListAsync();
+            return View(data);
+        }
+
 
         public IActionResult Create() => View();
 

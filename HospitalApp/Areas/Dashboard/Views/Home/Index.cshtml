@@ -1,10 +1,239 @@
-﻿@{
+﻿@using System.Text.Json
+@using HospitalApp.Models
+@using HospitalApp.Models.Enums
+@{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Tổng quan";
+
+    var labels14 = (string[])ViewBag.Labels14;
+    var values14 = (int[])ViewBag.Values14;
+    var statusLabels = (string[])ViewBag.StatusLabels;
+    var statusValues = (int[])ViewBag.StatusValues;
+
+    var upcoming = (IEnumerable<AppointmentSchedule>)ViewBag.Upcoming10;
+    var topDoctors = (IEnumerable<dynamic>)ViewBag.TopDoctors;
+    var topExpertises = (IEnumerable<dynamic>)ViewBag.TopExpertises;
 }
-<h2>Bảng điều khiển</h2>
-<ul>
-    <li><a asp-area="Dashboard" asp-controller="ManageAppointments" asp-action="Index">Quản lý lịch khám</a></li>
-    <li><a asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">Bác sĩ</a></li>
-    <li><a asp-area="Dashboard" asp-controller="Services" asp-action="Index">Dịch vụ</a></li>
-</ul>
+
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<div class="row">
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Hôm nay</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.Today lịch</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Chờ xác nhận</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.Pending</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Huỷ (7 ngày)</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.Cancelled7d</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Bệnh nhân</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalPatients</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Bác sĩ</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalDoctors</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-2 col-md-4 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Dịch vụ</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">@ViewBag.TotalServices</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8 col-lg-7 mb-4">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Lịch hẹn 14 ngày gần nhất</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="chartLast14d"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5 mb-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Phân bố trạng thái</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="chartStatus"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Lịch sắp tới</h6>
+                <a class="btn btn-sm btn-outline-primary" asp-area="Dashboard" asp-controller="AppointmentSchedules" asp-action="Index">Quản lý</a>
+            </div>
+            <div class="card-body">
+                @if (!(upcoming?.Any() ?? false))
+                {
+                    <div class="text-muted">Không có lịch sắp tới.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead><tr><th>Ngày</th><th>Giờ</th><th>Bác sĩ</th><th>Bệnh nhân</th><th>Trạng thái</th></tr></thead>
+                            <tbody>
+                                @foreach (var a in upcoming)
+                                {
+                                    <tr>
+                                        <td>@a.Date.ToString("dd/MM/yyyy")</td>
+                                        <td>@a.TimeFrame</td>
+                                        <td>@a.Doctor?.FullName</td>
+                                        <td>@(a.Patient?.FullName ?? (a.Patient?.User?.UserName ?? a.Patient?.User?.Email ?? "-"))</td>
+                                        <td>@a.Status</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header"><h6 class="m-0 font-weight-bold text-primary">Top bác sĩ (30 ngày)</h6></div>
+            <div class="card-body">
+                @if (!(topDoctors?.Any() ?? false))
+                {
+                    <div class="text-muted">Chưa có dữ liệu.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var d in topDoctors)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@d.Name</span>
+                                <span class="badge bg-primary rounded-pill">@d.Count</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header"><h6 class="m-0 font-weight-bold text-primary">Top chuyên môn (30 ngày)</h6></div>
+            <div class="card-body">
+                @if (!(topExpertises?.Any() ?? false))
+                {
+                    <div class="text-muted">Chưa có dữ liệu.</div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var e in topExpertises)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>@e.Name</span>
+                                <span class="badge bg-info rounded-pill">@e.Count</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/Dashboard/vendor/chart.js/Chart.min.js"></script>
+    <script>
+        // ----- Line: 14 ngày -----
+        const labels14 = @Html.Raw(JsonSerializer.Serialize(labels14));
+        const values14 = @Html.Raw(JsonSerializer.Serialize(values14));
+        new Chart(document.getElementById('chartLast14d'), {
+            type: 'line',
+            data: {
+                labels: labels14,
+                datasets: [{
+                    label: 'Lịch',
+                    data: values14,
+                    fill: true
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } },
+                maintainAspectRatio: false
+            }
+        });
+
+        // ----- Doughnut: Phân bố trạng thái -----
+        const statusLabels = @Html.Raw(JsonSerializer.Serialize(statusLabels));
+        const statusValues = @Html.Raw(JsonSerializer.Serialize(statusValues));
+
+        // Map màu theo trạng thái (đổi theo palette bạn thích)
+        const statusColorMap = {
+            Pending:   '#f6c23e', // vàng (warning)
+            Confirmed: '#4e73df', // xanh dương (primary)
+            Completed: '#1cc88a', // xanh lá (success)
+            Cancelled: '#e74a3b'  // đỏ (danger)
+        };
+
+        const bgColors   = statusLabels.map(l => statusColorMap[l] || '#858796'); // fallback xám
+        const hoverColors= bgColors.map(c => c);
+
+        new Chart(document.getElementById('chartStatus'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusValues,
+                    backgroundColor: bgColors,
+                    hoverBackgroundColor: hoverColors,
+                    borderWidth: 1,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                plugins: { legend: { position: 'bottom' } },
+                cutout: '60%',
+                maintainAspectRatio: false
+            }
+        });
+    </script>
+}

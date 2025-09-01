@@ -14,14 +14,82 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public MedicinesController(ApplicationDbContext db) => _db = db;
 
         // GET: /Dashboard/Medicines
-        public async Task<IActionResult> Index()
+        // GET: /Dashboard/Medicines
+        public async Task<IActionResult> Index(string? search, string? sortOrder)
         {
-            var data = await _db.Medicines
+            var q = _db.Medicines
                 .AsNoTracking()
-                .OrderBy(m => m.Name)
-                .ToListAsync();
+                .AsQueryable();
+
+            // ===== TÌM KIẾM =====
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+
+                // Cho phép người dùng nhập ID hoặc Giá để lọc nhanh
+                if (decimal.TryParse(k, out var price))
+                {
+                    q = q.Where(m =>
+                        m.Price == price ||
+                        m.Name.Contains(k) ||
+                        (m.ActiveElement != null && m.ActiveElement.Contains(k)) ||
+                        (m.ProductionUnit != null && m.ProductionUnit.Contains(k)) ||
+                        (m.Unit != null && m.Unit.Contains(k)) ||
+                        (m.DeclaringUnit != null && m.DeclaringUnit.Contains(k)) ||
+                        (m.Packing != null && m.Packing.Contains(k)) ||
+                        (m.Using != null && m.Using.Contains(k)) ||
+                        (m.UseManual != null && m.UseManual.Contains(k))
+                    );
+                }
+                else if (int.TryParse(k, out var id))
+                {
+                    q = q.Where(m =>
+                        m.Id == id ||
+                        m.Name.Contains(k) ||
+                        (m.ActiveElement != null && m.ActiveElement.Contains(k)) ||
+                        (m.ProductionUnit != null && m.ProductionUnit.Contains(k)) ||
+                        (m.Unit != null && m.Unit.Contains(k)) ||
+                        (m.DeclaringUnit != null && m.DeclaringUnit.Contains(k)) ||
+                        (m.Packing != null && m.Packing.Contains(k)) ||
+                        (m.Using != null && m.Using.Contains(k)) ||
+                        (m.UseManual != null && m.UseManual.Contains(k))
+                    );
+                }
+                else
+                {
+                    q = q.Where(m =>
+                        m.Name.Contains(k) ||
+                        (m.ActiveElement != null && m.ActiveElement.Contains(k)) ||
+                        (m.ProductionUnit != null && m.ProductionUnit.Contains(k)) ||
+                        (m.Unit != null && m.Unit.Contains(k)) ||
+                        (m.DeclaringUnit != null && m.DeclaringUnit.Contains(k)) ||
+                        (m.Packing != null && m.Packing.Contains(k)) ||
+                        (m.Using != null && m.Using.Contains(k)) ||
+                        (m.UseManual != null && m.UseManual.Contains(k))
+                    );
+                }
+
+                ViewData["Search"] = k; // giữ giá trị ở ô input
+            }
+
+            // ===== SẮP XẾP =====
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["PriceSort"] = sortOrder == "price" ? "price_desc" : "price";
+            ViewData["NameSort"] = sortOrder == "name" ? "name_desc" : "name"; // optional: sort theo tên
+
+            q = sortOrder switch
+            {
+                "price" => q.OrderBy(m => m.Price),
+                "price_desc" => q.OrderByDescending(m => m.Price),
+                "name" => q.OrderBy(m => m.Name),
+                "name_desc" => q.OrderByDescending(m => m.Name),
+                _ => q.OrderBy(m => m.Name) // mặc định theo tên
+            };
+
+            var data = await q.ToListAsync();
             return View(data);
         }
+
 
         // GET: /Dashboard/Medicines/Details/5
         public async Task<IActionResult> Details(int? id)

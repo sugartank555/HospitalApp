@@ -13,8 +13,26 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _context;
         public MedicalDepartmentsController(ApplicationDbContext context) => _context = context;
 
-        public async Task<IActionResult> Index()
-            => View(await _context.MedicalDepartments.AsNoTracking().ToListAsync());
+        public async Task<IActionResult> Index(string? search)
+        {
+            var q = _context.MedicalDepartments
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+                q = q.Where(d =>
+                    (d.Name != null && d.Name.Contains(k)) ||
+                    (d.Description != null && d.Description.Contains(k))
+                );
+                ViewData["Search"] = k; // giữ lại giá trị ô tìm kiếm
+            }
+
+            var data = await q.ToListAsync();
+            return View(data);
+        }
+
 
         public IActionResult Create() => View();
 

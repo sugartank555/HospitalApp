@@ -1,32 +1,81 @@
 ﻿@model HospitalApp.Models.Patient
 @{
-   
+    Layout = "~/Views/Shared/_Layout.cshtml"; // hoặc dùng Dashboard layout nếu muốn
     ViewData["Title"] = "Hồ sơ của tôi";
-}
-<h2>@ViewData["Title"]</h2>
-
-@if (TempData["Msg"] != null)
-{
-    <div class="alert alert-success">@TempData["Msg"]</div>
+    string accountEmail = (string)(ViewBag.AccountEmail ?? "");
+    string phoneNumber = (string)(ViewBag.PhoneNumber ?? "");
 }
 
-<form method="post" class="row g-3">
-    @Html.AntiForgeryToken()
-    <div class="col-md-4">
-        <label asp-for="DateOfBirth" class="form-label">Ngày sinh</label>
-        <input asp-for="DateOfBirth" type="date" class="form-control" />
-        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+<section class="container py-4">
+    <h2 class="mb-3">@ViewData["Title"]</h2>
+
+    @if (TempData["Msg"] != null)
+    {
+        <div class="alert alert-success">@TempData["Msg"]</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" asp-action="Edit">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Họ và tên</label>
+                            <input asp-for="FullName" class="form-control" placeholder="Nhập họ tên" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày sinh</label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dân tộc</label>
+                                <input asp-for="Ethnic" class="form-control" placeholder="VD: Kinh, Tày, ..." />
+                                <span asp-validation-for="Ethnic" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại (tài khoản)</label>
+                            <input name="phoneNumber" class="form-control" value="@phoneNumber" />
+                           
+                        </div>
+
+                        <button class="btn btn-primary">Lưu hồ sơ</button>
+                        <a asp-controller="Appointments" asp-action="My" class="btn btn-outline-secondary">Xem lịch của tôi</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin tài khoản (read-only) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Tài khoản</h5>
+                    <dl class="row">
+                        <dt class="col-5">Email</dt>
+                        <dd class="col-7">@accountEmail</dd>
+
+                        <dt class="col-5">Liên kết hồ sơ</dt>
+                        <dd class="col-7"><span class="badge bg-success">Đã liên kết</span></dd>
+                    </dl>
+                    <a asp-area="Identity" asp-page="/Account/Manage/Index" class="btn btn-sm btn-outline-primary">
+                        Quản lý tài khoản
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label asp-for="Ethnic" class="form-label">Dân tộc</label>
-        <input asp-for="Ethnic" class="form-control" />
-        <span asp-validation-for="Ethnic" class="text-danger"></span>
-    </div>
-    <div class="col-12">
-        <button class="btn btn-primary">Lưu</button>
-        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Về trang chủ</a>
-    </div>
-</form>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

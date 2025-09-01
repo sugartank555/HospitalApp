@@ -1,58 +1,199 @@
 ﻿@page
 @model LoginModel
-
 @{
-    ViewData["Title"] = "Log in";
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null; 
 }
 
-<style>
-    .center-screen {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-    }
-</style>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>@ViewData["Title"]</title>
 
-<div class="center-screen">
-    <div class="col-md-4">
-        <h1 class="text-center">@ViewData["Title"]</h1>
-        <section>
-            <form id="account" method="post">
-                <h2 class="text-center">Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group">
-                    <label asp-for="Input.Email"></label>
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <label asp-for="Input.Password"></label>
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="form-group">
-                    <div class="form-check">
-                        <input asp-for="Input.RememberMe" class="form-check-input" />
-                        <label asp-for="Input.RememberMe" class="form-check-label">
-                            @Html.DisplayNameFor(m => m.Input.RememberMe)
-                        </label>
+    <!-- Nếu dự án của bạn đã có bootstrap bundle trong _Layout, có thể bỏ 2 dòng dưới -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand: #0d6efd; /* Màu chủ đạo */
+            --brand-600: #0b5ed7;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(1200px 600px at 10% 10%, #e9f2ff 0%, transparent 60%), radial-gradient(1000px 500px at 90% 90%, #eef7ff 0%, transparent 60%), linear-gradient(135deg, #f8fbff 0%, #f1f5ff 100%);
+        }
+
+        .auth-wrap {
+            min-height: 100vh;
+        }
+
+        .auth-card {
+            max-width: 460px;
+            width: 100%;
+            border: 0;
+            border-radius: 1.25rem; /* rounded-4 */
+            box-shadow: 0 20px 45px rgba(13, 110, 253, 0.12), 0 8px 16px rgba(0,0,0,.06);
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-600) 100%);
+            color: #fff;
+            padding: 1.75rem 1.5rem;
+        }
+
+            .auth-header h1 {
+                font-size: 1.4rem;
+                margin: 0;
+                letter-spacing: .2px;
+            }
+
+            .auth-header p {
+                margin: .25rem 0 0;
+                opacity: .9;
+            }
+
+        .auth-body {
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .btn-primary {
+            --bs-btn-bg: var(--brand);
+            --bs-btn-border-color: var(--brand);
+            --bs-btn-hover-bg: var(--brand-600);
+            --bs-btn-hover-border-color: var(--brand-600);
+            --bs-btn-focus-shadow-rgb: 13,110,253;
+        }
+
+        .links a {
+            text-decoration: none;
+        }
+
+            .links a:hover {
+                text-decoration: underline;
+            }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            font-weight: 700;
+        }
+
+        .brand-dot {
+            width: .6rem;
+            height: .6rem;
+            border-radius: 999px;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+        }
+        /* Validation summary đẹp hơn */
+        .validation-summary-valid {
+            display: none;
+        }
+
+        .validation-summary-errors {
+            border: 1px solid #f8d7da;
+            background: #fef2f2;
+            color: #842029;
+            border-radius: .75rem;
+            padding: .75rem 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container auth-wrap d-flex align-items-center justify-content-center py-4">
+        <div class="card auth-card">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="brand-badge">
+                            <span class="brand-dot"></span>
+                            <span>@(ViewData["AppName"] ?? "YourApp")</span>
+                        </div>
+                        <h1 class="mt-2">@ViewData["Title"]</h1>
+                        <p>Chào mừng bạn quay lại 👋</p>
                     </div>
+                    <!-- Nếu có logo: <img src="/images/logo.svg" alt="logo" style="height:32px"> -->
                 </div>
-                <div class="form-group text-center">
-                    <button type="submit" class="btn btn-primary">Log in</button>
-                </div>
-                <div class="form-group text-center">
-                    <p><a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a></p>
-                    <p><a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a></p>
-                    <p><a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a></p>
-                </div>
-            </form>
-        </section>
-    </div>
-</div>
+            </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+            <!-- Body -->
+            <div class="auth-body">
+                <section>
+                    <form id="account" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="All" class="validation-summary-errors mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label">Email</label>
+                            <input asp-for="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" />
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label asp-for="Input.Password" class="form-label">Mật khẩu</label>
+                            <input asp-for="Input.Password" class="form-control form-control-lg" autocomplete="current-password" aria-required="true" />
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="form-check form-switch">
+                                <input asp-for="Input.RememberMe" class="form-check-input" />
+                                <label asp-for="Input.RememberMe" class="form-check-label">Nhớ đăng nhập</label>
+                            </div>
+                            <a id="forgot-password" asp-page="./ForgotPassword" class="small">Quên mật khẩu?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            Đăng nhập
+                        </button>
+
+                        <div class="text-center mt-3 links">
+                            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="d-block">
+                                Chưa có tài khoản? <strong>Đăng ký ngay</strong>
+                            </a>
+                          
+                        </div>
+
+                        @* Nếu bạn dùng đăng nhập ngoài (Google, Facebook...), hiện nút tại đây *@
+                        @if (Model.ExternalLogins?.Count > 0)
+                        {
+                            <hr class="my-4" />
+                            <div class="text-center mb-3 text-muted">Hoặc đăng nhập bằng</div>
+                            <div class="d-grid gap-2">
+                                @foreach (var provider in Model.ExternalLogins!)
+                                {
+                                    <button type="submit"
+                                            class="btn btn-outline-secondary btn-lg"
+                                            name="provider"
+                                            value="@provider.Name"
+                                            title="Đăng nhập với @provider.DisplayName">
+                                        @provider.DisplayName
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nếu dự án đã bundle JS, có thể bỏ 2 dòng dưới -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

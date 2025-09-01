@@ -2,28 +2,163 @@
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Hồ sơ khám";
+    var search = ViewData["Search"] as string;
+    var currentSort = ViewData["CurrentSort"] as string;
 }
-<h2>@ViewData["Title"]</h2>
-<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
-<table class="table table-striped">
-    <thead>
-        <tr><th>ID</th><th>Thời gian</th><th>Bệnh nhân</th><th>Bác sĩ</th><th>TT Thanh toán</th><th></th></tr>
-    </thead>
-    <tbody>
-        @foreach (var x in Model)
-        {
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<p class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fas fa-plus"></i> Thêm hồ sơ khám
+    </a>
+
+</p>
+<form asp-action="Index" method="get" class="ms-auto">
+    <div class="input-group">
+        <input name="search" value="@search" class="form-control"
+               placeholder="Tìm theo ngày (yyyy-MM-dd), Bệnh nhân, Bác sĩ, hoặc Paid/Unpaid/Refunded..." />
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Tìm kiếm
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+        </a>
+    </div>
+</form>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Chưa có hồ sơ khám nào.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
             <tr>
-                <td>@x.Id</td>
-                <td>@x.Time</td>
-                <td>@x.Patient?.FullName</td>
-                <td>@x.Doctor?.FullName</td>
-                <td>@x.PaymentStatus</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@x.Id">Xem</a> |
-                    <a asp-action="Edit" asp-route-id="@x.Id">Sửa</a> |
-                    <a asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
-                </td>
+                <th>ID</th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["TimeSort"]" asp-route-search="@search">
+                        Thời gian
+                        @if (currentSort == "time_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (string.IsNullOrEmpty(currentSort))
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["PatientSort"]" asp-route-search="@search">
+                        Bệnh nhân
+                        @if (currentSort == "patient_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (currentSort == "patient")
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["DoctorSort"]" asp-route-search="@search">
+                        Bác sĩ
+                        @if (currentSort == "doctor_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (currentSort == "doctor")
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["PaySort"]" asp-route-search="@search">
+                        TT Thanh toán
+                        @if (currentSort == "pay_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (currentSort == "pay")
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th style="width:220px"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+
+        <!-- giữ nguyên tbody của bạn -->
+        <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.Id</td>
+                    <td>@x.Time</td>
+                    <td>@x.Patient?.FullName</td>
+                    <td>@x.Doctor?.FullName</td>
+                    <td>@x.PaymentStatus</td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@x.Id">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@x.Id">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">
+                            <i class="fas fa-trash-alt"></i> Xoá
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@{
+    var page = (int)(ViewData["Page"] ?? 1);
+    var totalPages = (int)(ViewData["TotalPages"] ?? 1);
+    var searchQ = ViewData["Search"] as string;
+    var sortOrder = ViewData["CurrentSort"] as string;
+}
+
+@if (totalPages > 1)
+{
+    <nav aria-label="Medical records pages">
+        <ul class="pagination">
+            <li class="page-item @(page == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(page - 1)"
+                   asp-route-search="@searchQ"
+                   asp-route-sortOrder="@sortOrder">«</a>
+            </li>
+
+            @for (var i = 1; i <= totalPages; i++)
+            {
+                <li class="page-item @(i == page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-search="@searchQ"
+                       asp-route-sortOrder="@sortOrder">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(page == totalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(page + 1)"
+                   asp-route-search="@searchQ"
+                   asp-route-sortOrder="@sortOrder">»</a>
+            </li>
+        </ul>
+    </nav>
+}

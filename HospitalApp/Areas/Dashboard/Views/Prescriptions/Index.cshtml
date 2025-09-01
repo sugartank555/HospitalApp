@@ -2,25 +2,108 @@
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Toa thuốc";
+    var search = ViewData["Search"] as string;
+    var currentSort = ViewData["CurrentSort"] as string;
 }
-<h2>@ViewData["Title"]</h2>
-<p><a class="btn btn-primary" asp-action="Create">+ Thêm toa</a></p>
-<table class="table table-striped">
-    <thead><tr><th>ID</th><th>Hồ sơ</th><th>Ngày lập</th><th></th></tr></thead>
-    <tbody>
-        @foreach (var x in Model)
-        {
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<p class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fas fa-plus"></i> Thêm toa
+    </a>
+
+  
+</p>
+
+<form asp-action="Index" method="get" class="ms-auto">
+    <div class="input-group">
+        <input name="search" value="@search" class="form-control"
+               placeholder="Tìm theo ngày (yyyy-MM-dd), ID toa, hoặc MedicalRecordId..." />
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Tìm kiếm
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+        </a>
+    </div>
+</form>
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Chưa có toa thuốc nào.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
             <tr>
-                <td>@x.Id</td>
-                <td>@x.MedicalRecordId</td>
-                <td>@x.CreatedAt</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-success" asp-action="Items" asp-route-id="@x.Id">Thêm thuốc</a>
-                    <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@x.Id">Xem</a>
-                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@x.Id">Sửa</a>
-                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
-                </td>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["IdSort"]" asp-route-search="@search">
+                        ID
+                        @if (currentSort == "id_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (currentSort == "id")
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["MrSort"]" asp-route-search="@search">
+                        Hồ sơ
+                        @if (currentSort == "mr_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (currentSort == "mr")
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th>
+                    <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSort"]" asp-route-search="@search">
+                        Ngày lập
+                        @if (currentSort == "date_desc")
+                        {
+                            <i class="bi bi-caret-down-fill"></i>
+                        }
+                        else if (string.IsNullOrEmpty(currentSort))
+                        {
+
+                            <i class="bi bi-caret-up-fill"></i>
+                        }
+                    </a>
+                </th>
+                <th style="width:280px"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.Id</td>
+                    <td>@x.MedicalRecordId</td>
+                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-sm btn-outline-success" asp-action="Items" asp-route-id="@x.Id">
+                            <i class="fas fa-pills"></i> Thêm thuốc
+                        </a>
+                        <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@x.Id">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@x.Id">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">
+                            <i class="fas fa-trash-alt"></i> Xoá
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

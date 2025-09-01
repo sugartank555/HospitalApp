@@ -14,11 +14,52 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _db;
         public ServicesController(ApplicationDbContext db) => _db = db;
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, string? sortOrder)
         {
-            var q = _db.Services.Include(s => s.MedicalDepartment).AsNoTracking();
-            return View(await q.ToListAsync());
+            var q = _db.Services
+                .Include(s => s.MedicalDepartment)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // ====== SEARCH ======
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+
+                // Nếu người dùng gõ số -> cho phép lọc theo đúng giá
+                if (decimal.TryParse(k, out var price))
+                {
+                    q = q.Where(s => s.Price == price
+                                     || s.Name.Contains(k)
+                                     || (s.Description != null && s.Description.Contains(k))
+                                     || (s.MedicalDepartment != null && s.MedicalDepartment.Name.Contains(k)));
+                }
+                else
+                {
+                    q = q.Where(s =>
+                        s.Name.Contains(k) ||
+                        (s.Description != null && s.Description.Contains(k)) ||
+                        (s.MedicalDepartment != null && s.MedicalDepartment.Name.Contains(k)));
+                }
+
+                ViewData["Search"] = k;
+            }
+
+            // ====== SORT (theo GIÁ) ======
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["PriceSort"] = sortOrder == "price" ? "price_desc" : "price";
+
+            q = sortOrder switch
+            {
+                "price" => q.OrderBy(s => s.Price),
+                "price_desc" => q.OrderByDescending(s => s.Price),
+                _ => q.OrderBy(s => s.Name) // mặc định: theo tên
+            };
+
+            var data = await q.ToListAsync();
+            return View(data);
         }
+
 
         public IActionResult Create() { LoadDeps(); return View(); }
 

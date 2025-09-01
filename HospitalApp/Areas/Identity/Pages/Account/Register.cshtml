@@ -1,67 +1,198 @@
 ﻿@page
 @model RegisterModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Đăng ký";
+    Layout = null; // Nếu muốn dùng chung _Layout, bỏ dòng này
 }
 
-<h1>@ViewData["Title"]</h1>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>@ViewData["Title"]</title>
 
-<div class="row">
-    <div class="col-md-4">
-        <form asp-route-returnUrl="@Model.ReturnUrl" method="post">
-            <h2>Create a new account.</h2>
-            <hr />
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Input.Email"></label>
-                <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" />
-                <span asp-validation-for="Input.Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Input.Password"></label>
-                <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" />
-                <span asp-validation-for="Input.Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Input.ConfirmPassword"></label>
-                <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" />
-                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
-            </div>
-            <button type="submit" class="btn btn-primary">Register</button>
-        </form>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
+    <!-- Nếu dự án đã có Bootstrap trong _Layout, có thể bỏ 2 dòng này -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand: #0d6efd;
+            --brand-600: #0b5ed7;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(1200px 600px at 10% 10%, #e9f2ff 0%, transparent 60%), radial-gradient(1000px 500px at 90% 90%, #eef7ff 0%, transparent 60%), linear-gradient(135deg, #f8fbff 0%, #f1f5ff 100%);
+        }
+
+        .auth-wrap {
+            min-height: 100vh;
+        }
+
+        .auth-card {
+            max-width: 560px;
+            width: 100%;
+            border: 0;
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 45px rgba(13,110,253,.12), 0 8px 16px rgba(0,0,0,.06);
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-600) 100%);
+            color: #fff;
+            padding: 1.75rem 1.5rem;
+        }
+
+            .auth-header h1 {
+                font-size: 1.4rem;
+                margin: 0;
+                letter-spacing: .2px;
             }
-        </section>
-    </div>
-</div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+        .auth-body {
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .btn-primary {
+            --bs-btn-bg: var(--brand);
+            --bs-btn-border-color: var(--brand);
+            --bs-btn-hover-bg: var(--brand-600);
+            --bs-btn-hover-border-color: var(--brand-600);
+            --bs-btn-focus-shadow-rgb: 13,110,253;
+        }
+
+        .validation-summary-valid {
+            display: none;
+        }
+
+        .validation-summary-errors {
+            border: 1px solid #f8d7da;
+            background: #fef2f2;
+            color: #842029;
+            border-radius: .75rem;
+            padding: .75rem 1rem;
+        }
+
+        .links a {
+            text-decoration: none;
+        }
+
+            .links a:hover {
+                text-decoration: underline;
+            }
+
+        .pwd-hint {
+            font-size: .9rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container auth-wrap d-flex align-items-center justify-content-center py-4">
+        <div class="card auth-card">
+            <!-- Header -->
+            <div class="auth-header">
+                <h1>@ViewData["Title"]</h1>
+                <p class="mb-0">Tạo tài khoản để bắt đầu ✨</p>
+            </div>
+
+            <!-- Body -->
+            <div class="auth-body">
+                <form asp-route-returnUrl="@Model.ReturnUrl" method="post" class="needs-validation" novalidate>
+                    <div asp-validation-summary="All" class="validation-summary-errors mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <input asp-for="Input.Email" class="form-control form-control-lg" autocomplete="username" aria-required="true" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label">Mật khẩu</label>
+                        <div class="input-group input-group-lg">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" id="pwd" />
+                            <button class="btn btn-outline-secondary" type="button" id="togglePwd" aria-label="Hiển thị/ẩn mật khẩu">
+                                <span id="togglePwdText">Hiện</span>
+                            </button>
+                        </div>
+                        <div class="pwd-hint mt-1">Tối thiểu 6 ký tự (hoặc theo cấu hình của bạn).</div>
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                        <div class="input-group input-group-lg">
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" id="pwd2" />
+                            <button class="btn btn-outline-secondary" type="button" id="togglePwd2" aria-label="Hiển thị/ẩn mật khẩu">
+                                <span id="togglePwdText2">Hiện</span>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    @* Nếu muốn buộc đồng ý điều khoản *@
+                    @* <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="agree" required>
+                    <label class="form-check-label" for="agree">
+                        Tôi đồng ý với <a href="#">Điều khoản</a> & <a href="#">Chính sách</a>.
+                    </label>
+                </div> *@
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Đăng ký</button>
+
+                    <div class="text-center mt-3 links">
+                        <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl">Đã có tài khoản? <strong>Đăng nhập</strong></a>
+                    </div>
+
+                    @* Khu vực đăng ký bằng tài khoản ngoài *@
+                    @if (Model.ExternalLogins?.Count > 0)
+                    {
+                        <hr class="my-4" />
+                        <div class="text-center mb-3 text-muted">Hoặc đăng ký/đăng nhập bằng</div>
+                        <div class="d-grid gap-2">
+                            @foreach (var provider in Model.ExternalLogins!)
+                            {
+                                <button type="submit"
+                                        class="btn btn-outline-secondary btn-lg"
+                                        name="provider"
+                                        value="@provider.Name"
+                                        title="Đăng nhập với @provider.DisplayName">
+                                    @provider.DisplayName
+                                </button>
+                            }
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nếu dự án đã bundle JS, có thể bỏ 2 dòng dưới -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Hiện/ẩn mật khẩu
+        const toggle = (inputId, btnTextId) => {
+            const input = document.getElementById(inputId);
+            const text = document.getElementById(btnTextId);
+            if (!input || !text) return;
+            input.type = input.type === "password" ? "text" : "password";
+            text.textContent = input.type === "password" ? "Hiện" : "Ẩn";
+        };
+        document.getElementById('togglePwd')?.addEventListener('click', () => toggle('pwd', 'togglePwdText'));
+        document.getElementById('togglePwd2')?.addEventListener('click', () => toggle('pwd2', 'togglePwdText2'));
+    </script>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

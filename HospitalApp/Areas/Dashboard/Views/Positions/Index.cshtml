@@ -1,23 +1,65 @@
 ﻿@model IEnumerable<HospitalApp.Models.Position>
 @{
-    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml"; ViewData["Title"] = "Chức danh";
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chức danh";
 }
-<h2>@ViewData["Title"]</h2>
-<p><a class="btn btn-primary" asp-action="Create">+ Thêm</a></p>
-<table class="table">
-    <thead><tr><th>ID</th><th>Tên</th><th></th></tr></thead>
-    <tbody>
-        @foreach (var x in Model)
-        {
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fas fa-plus"></i> Thêm chức danh
+    </a>
+</p>
+@{
+    var search = ViewData["Search"] as string;
+}
+<form asp-action="Index" method="get" class="mb-3">
+    <div class="input-group">
+        <input name="search" value="@search" class="form-control"
+               placeholder="Tìm theo tên vị trí… (có thể nhập ID)" />
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i> Tìm kiếm
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+        </a>
+    </div>
+</form>
+
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">Chưa có chức danh nào.</div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
             <tr>
-                <td>@x.Id</td>
-                <td>@x.Name</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@x.Id">Xem</a> |
-                    <a asp-action="Edit" asp-route-id="@x.Id">Sửa</a> |
-                    <a asp-action="Delete" asp-route-id="@x.Id">Xoá</a>
-                </td>
+                <th>ID</th>
+                <th>Tên</th>
+                <th style="width:200px"></th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var x in Model)
+            {
+                <tr>
+                    <td>@x.Id</td>
+                    <td>@x.Name</td>
+                    <td class="text-nowrap">
+                        <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@x.Id">
+                            <i class="fas fa-eye"></i> Xem
+                        </a>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@x.Id">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">
+                            <i class="fas fa-trash-alt"></i> Xoá
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

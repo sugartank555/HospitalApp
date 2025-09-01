@@ -46,36 +46,59 @@
     <!-- Header -->
     <header class="header">
         <!-- Topbar -->
-        <div class="topbar">
+        <div class="topbar py-2 border-bottom">
             <div class="container">
                 <div class="row align-items-center">
+
                     <!-- Left -->
                     <div class="col-lg-6 col-md-6 col-12">
-                        <ul class="top-link d-flex align-items-center gap-3 mb-0 list-unstyled">
-                            <li><a asp-controller="Home" asp-action="About">About</a></li>
-                            <li><a asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
-                            <li><a asp-controller="Catalog" asp-action="Services">Services</a></li>
-                            <li><a asp-controller="Catalog" asp-action="Departments">Departments</a></li>
-                            <li><a asp-controller="Contact" asp-action="Index">Contact</a></li>
-                            <li><a asp-controller="Home" asp-action="Faq">FAQ</a></li>
-
-                            @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
-                            {
-                                <li><a asp-area="Dashboard" asp-controller="Home" asp-action="Index">Dashboard</a></li>
-                            }
+                        <ul class="nav gap-3 small mb-0">
+                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Home" asp-action="About">About</a></li>
+                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
+                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Catalog" asp-action="Services">Services</a></li>
+                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Catalog" asp-action="Departments">Departments</a></li>
+                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Home" asp-action="Faq">FAQ</a></li>
                         </ul>
                     </div>
 
                     <!-- Right -->
-                    <div class="col-lg-6 col-md-6 col-12 d-flex justify-content-lg-end align-items-center gap-4">
-                        <ul class="top-contact d-flex align-items-center gap-4 mb-0 list-unstyled">
-                            <li><i class="fa fa-phone"></i> +880 1234 56789</li>
-                        </ul>
-                        <partial name="_LoginPartial" />
+                    <div class="col-lg-6 col-md-6 col-12">
+                        <div class="d-flex justify-content-lg-end align-items-center flex-wrap gap-3">
+
+                            <!-- Phone -->
+                            <ul class="nav small mb-0">
+                                <li class="nav-item">
+                                    <a class="border border-secondary rounded px-3 py-1 text-body text-decoration-none"
+                                       asp-controller="Profile" asp-action="Edit">
+                                        Hồ sơ
+                                    </a>
+                                </li>
+                            </ul>
+
+
+                            <!-- Auth (Identity _LoginPartial thường render <ul class="navbar-nav">) -->
+                            <div class="auth-nav">
+                                <partial name="_LoginPartial" />
+                            </div>
+
+                            <!-- Quick links (role-based) -->
+                            <ul class="nav small mb-0">
+                                @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link px-0" asp-area="Dashboard" asp-controller="Home" asp-action="Index">Dashboard</a>
+                                    </li>
+                                }
+                                
+                            </ul>
+
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
+
         <!-- Header Inner -->
         <div class="header-inner">
             <div class="container">
@@ -92,6 +115,9 @@
                         </div>
 
                         <!-- Main Menu -->
+                        @{
+                            var signedIn = User?.Identity?.IsAuthenticated ?? false;
+                        }
                         <div class="col-lg-7 col-md-9 col-12">
                             <div class="main-menu">
                                 <nav class="navigation">
@@ -102,19 +128,29 @@
                                         <li><a asp-controller="Catalog" asp-action="Departments">Departments</a></li>
                                         <li><a asp-controller="Catalog" asp-action="Services">Services</a></li>
                                         <li><a asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
-                                        <li><a asp-controller="Contact" asp-action="Index">Contact</a></li>
 
-                                        <!-- Đẩy sang phải trên màn lớn -->
-                                        <li class="ms-lg-auto nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Create">Đặt lịch</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-controller="Appointments" asp-action="My">Lịch của tôi</a>
-                                        </li>
+                                        @if (signedIn)
+                                        {
+                                            <!-- Đẩy sang phải khi đã đăng nhập -->
+                                            <li class="ms-lg-auto nav-item">
+                                                <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Create">Đặt lịch</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark" asp-controller="Appointments" asp-action="My">Lịch của tôi</a>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <!-- Khi chưa đăng nhập: hiện nút Đăng nhập ở vị trí đẩy phải -->
+                                            <li class="ms-lg-auto nav-item">
+                                                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
+                                            </li>
+                                        }
                                     </ul>
                                 </nav>
                             </div>
                         </div>
+
 
                         <!-- Slot trống (search/button) -->
                         <div class="col-lg-2 col-12"></div>
@@ -165,7 +201,7 @@
                                     <ul>
                                         <li><a asp-controller="Booking" asp-action="Create"><i class="fa fa-caret-right"></i>Book Now</a></li>
                                         <li><a asp-controller="Booking" asp-action="MyAppointments"><i class="fa fa-caret-right"></i>My Appointments</a></li>
-                                        <li><a asp-controller="Home" asp-action="Faq"><i class="fa fa-caret-right"></i>FAQ</a></li>
+                                      
                                         <li><a asp-controller="Contact" asp-action="Index"><i class="fa fa-caret-right"></i>Contact Us</a></li>
                                         @* <li><a href="#"><i class="fa fa-caret-right"></i>Other Links</a></li> *@
                                     </ul>

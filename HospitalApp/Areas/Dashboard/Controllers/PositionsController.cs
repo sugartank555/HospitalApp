@@ -14,8 +14,36 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public PositionsController(ApplicationDbContext context) => _context = context;
 
         // GET: Dashboard/Positions
-        public async Task<IActionResult> Index()
-            => View(await _context.Positions.AsNoTracking().ToListAsync());
+        // GET: Dashboard/Positions
+        public async Task<IActionResult> Index(string? search)
+        {
+            var q = _context.Positions
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+
+                // Nếu gõ số -> cho phép lọc theo ID hoặc theo tên chứa từ khóa
+                if (int.TryParse(k, out var id))
+                {
+                    q = q.Where(p => p.Id == id || p.Name.Contains(k));
+                }
+                else
+                {
+                    q = q.Where(p => p.Name.Contains(k));
+                    // Hoặc dùng Like nếu muốn:
+                    // q = q.Where(p => EF.Functions.Like(p.Name, $"%{k}%"));
+                }
+
+                ViewData["Search"] = k; // giữ lại giá trị ô input
+            }
+
+            var data = await q.ToListAsync();
+            return View(data);
+        }
+
 
         // GET: Dashboard/Positions/Create
         public IActionResult Create() => View();

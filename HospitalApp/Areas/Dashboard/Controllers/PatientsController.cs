@@ -15,12 +15,26 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public PatientsController(ApplicationDbContext db) => _db = db;
 
         // GET: /Dashboard/Patients
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search)
         {
-            var data = await _db.Patients
+            var q = _db.Patients
                 .Include(p => p.User)
                 .AsNoTracking()
-                .ToListAsync();
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var k = search.Trim();
+                q = q.Where(p =>
+                    (p.FullName != null && p.FullName.Contains(k)) ||
+                    (p.User != null && (
+                        (p.User.UserName != null && p.User.UserName.Contains(k)) ||
+                        (p.User.Email != null && p.User.Email.Contains(k))
+                    )));
+                ViewData["Search"] = k;
+            }
+
+            var data = await q.ToListAsync();
             return View(data);
         }
 
@@ -44,7 +58,6 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Patient model)
         {
-            // tránh MVC validate navigation
             ModelState.Remove("User");
 
             // Không cho trùng UserId
@@ -80,7 +93,6 @@ namespace HospitalApp.Areas.Dashboard.Controllers
             catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.SqlClient.SqlException sql &&
                                                sql.Message.Contains("IX_Patients_UserId"))
             {
-                // Phòng trường hợp race-condition
                 ModelState.AddModelError("UserId", "Tài khoản này đã có hồ sơ bệnh nhân.");
                 await LoadUsersAsync(model.UserId);
                 return View(model);
@@ -131,7 +143,6 @@ namespace HospitalApp.Areas.Dashboard.Controllers
             var entity = await _db.Patients.FirstOrDefaultAsync(p => p.Id == id);
             if (entity == null) return NotFound();
 
-            // Cập nhật các trường scalar (giữ đơn giản: set values)
             _db.Entry(entity).CurrentValues.SetValues(model);
 
             try
@@ -152,20 +163,65 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
+
             var p = await _db.Patients.Include(x => x.User)
                         .AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            return p == null ? NotFound() : View(p);
+            if (p == null) return NotFound();
+
+            // Đếm dữ liệu phụ thuộc để cảnh báo
+            ViewBag.AppointmentCount = await _db.AppointmentSchedules.CountAsync(a => a.PatientId == id);
+            ViewBag.RecordCount = await _db.MedicalRecords.CountAsync(m => m.PatientId == id);
+
+            return View(p);
         }
 
         // POST: /Dashboard/Patients/Delete/5
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Chặn xoá nếu còn phụ thuộc
+            bool hasApp = await _db.AppointmentSchedules.AnyAsync(a => a.PatientId == id);
+            bool hasRecord = await _db.MedicalRecords.AnyAsync(m => m.PatientId == id);
+
+            if (hasApp || hasRecord)
+            {
+                TempData["Error"] = "Không thể xoá vì bệnh nhân còn lịch hẹn hoặc hồ sơ bệnh án. "
+                                  + "Vui lòng huỷ/xoá chúng trước.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             var p = await _db.Patients.FindAsync(id);
             if (p != null)
             {
                 _db.Patients.Remove(p);
                 await _db.SaveChangesAsync();
+                TempData["Msg"] = "Đã xoá bệnh nhân.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Tuỳ chọn: Xoá cưỡng bức (chỉ Admin) — XOÁ SẠCH DỮ LIỆU LIÊN QUAN
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ForceDelete(int id)
+        {
+            // Xoá lịch hẹn
+            var apps = await _db.AppointmentSchedules.Where(a => a.PatientId == id).ToListAsync();
+            _db.AppointmentSchedules.RemoveRange(apps);
+
+            // Xoá hồ sơ bệnh án (các bảng con đã cascade theo cấu hình)
+            var records = await _db.MedicalRecords.Where(m => m.PatientId == id).ToListAsync();
+            _db.MedicalRecords.RemoveRange(records);
+
+            await _db.SaveChangesAsync();
+
+            var p = await _db.Patients.FindAsync(id);
+            if (p != null)
+            {
+                _db.Patients.Remove(p);
+                await _db.SaveChangesAsync();
+                TempData["Msg"] = "Đã xoá bệnh nhân và toàn bộ dữ liệu liên quan.";
             }
             return RedirectToAction(nameof(Index));
         }

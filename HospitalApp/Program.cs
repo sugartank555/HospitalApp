@@ -57,7 +57,7 @@ app.UseAuthorization();
 // ===== Routes =====
 // Area (Dashboard)
 app.MapControllerRoute(
-    name: "Dashboard",
+    name: "Areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 // Mặc định (User)
