@@ -1,0 +1,148 @@
+﻿@model IEnumerable<HospitalApp.Areas.Dashboard.Controllers.UserRowVm>
+@{
+    Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Quản lý tài khoản";
+    var search = ViewData["Search"] as string;
+    var currentSort = ViewData["CurrentSort"] as string;
+    var roleFilter = ViewData["RoleFilter"] as string;
+    var allRoles = (IEnumerable<string>)ViewBag.AllRoles ?? Enumerable.Empty<string>();
+}
+
+<h2 class="mb-3">@ViewData["Title"]</h2>
+
+<div class="d-flex gap-2 flex-wrap mb-3">
+    <a class="btn btn-primary" asp-action="Create"><i class="fas fa-user-plus me-1"></i> Tạo tài khoản</a>
+
+    <form asp-action="Index" method="get" class="ms-auto">
+        <div class="input-group">
+            <input name="search" value="@search" class="form-control" placeholder="Tìm theo UserName/Email/SĐT..." />
+            <select name="role" class="form-select" style="max-width:220px;">
+                <option value="">-- Tất cả vai trò --</option>
+                @foreach (var r in allRoles)
+                {
+                    <option value="@r" selected="@(roleFilter == r ? "selected" : null)">@r</option>
+                }
+            </select>
+            <button class="btn btn-primary"><i class="bi bi-search me-1"></i> Tìm</button>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<table class="table table-striped align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSort"]" asp-route-search="@search" asp-route-role="@roleFilter">
+                    UserName
+                    @if (currentSort == "name_desc")
+                    {
+                        <i class="bi bi-caret-down-fill"></i>
+                    }
+                    else if (currentSort == "name")
+                    {
+
+                        <i class="bi bi-caret-up-fill"></i>
+                    }
+                </a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["EmailSort"]" asp-route-search="@search" asp-route-role="@roleFilter">
+                    Email
+                    @if (currentSort == "email_desc")
+                    {
+                        <i class="bi bi-caret-down-fill"></i>
+                    }
+                    else if (currentSort == "email")
+                    {
+
+                        <i class="bi bi-caret-up-fill"></i>
+                    }
+                </a>
+            </th>
+            <th>SĐT</th>
+            <th>Vai trò</th>
+            <th>Lockout</th>
+            <th style="width:360px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var locked = u.LockoutEnd.HasValue && u.LockoutEnd.Value.UtcDateTime > DateTime.UtcNow;
+            <tr>
+                <td>@u.UserName</td>
+                <td>@u.Email</td>
+                <td>@u.Phone</td>
+                <td>
+                    @if (u.Roles.Any())
+                    {
+                        foreach (var r in u.Roles)
+                        {
+                            <span class="badge bg-secondary me-1">@r</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                </td>
+                <td>
+                    @if (locked)
+                    {
+                        <span class="badge bg-danger">Khoá đến @u.LockoutEnd?.LocalDateTime.ToString("dd/MM/yyyy HH:mm")</span>
+                    }
+                    else
+                    {
+
+                        <span class="badge bg-success">Đang mở</span>
+                    }
+                </td>
+                <td class="text-nowrap">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="EditRoles" asp-route-id="@u.Id">
+                        <i class="fas fa-user-shield"></i> Vai trò
+                    </a>
+                    <form asp-action="ResetPassword" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button class="btn btn-sm btn-outline-warning" onclick="return confirm('Đặt lại mật khẩu cho tài khoản này?');">
+                            <i class="fas fa-key"></i> Reset mật khẩu
+                        </button>
+                    </form>
+                    @if (locked)
+                    {
+                        <form asp-action="Unlock" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button class="btn btn-sm btn-outline-success"><i class="fas fa-unlock"></i> Mở khoá</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Lock" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@u.Id" />
+                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Khoá tài khoản này?');">
+                                <i class="fas fa-lock"></i> Khoá 30 ngày
+                            </button>
+                        </form>
+                    }
+                    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xoá tài khoản này?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@u.Id" />
+                        <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i> Xoá</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success mt-3">@TempData["Msg"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mt-3">@TempData["Error"]</div>
+}

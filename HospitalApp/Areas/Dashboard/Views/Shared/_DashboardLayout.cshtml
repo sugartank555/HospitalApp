@@ -47,6 +47,20 @@
                     <span>Tổng quan</span>
                 </a>
             </li>
+            @* --- Quản trị hệ thống (chỉ dành cho Admin) --- *@
+            @if (User.IsInRole("Admin"))
+            {
+                <hr class="sidebar-divider" />
+
+                <div class="sidebar-heading">Quản trị</div>
+
+                <li class="nav-item @active("Users")">
+                    <a class="nav-link" asp-area="Dashboard" asp-controller="Users" asp-action="Index">
+                        <i class="fas fa-fw fa-user-shield"></i>
+                        <span>Tài khoản (Users)</span>
+                    </a>
+                </li>
+            }
 
             <hr class="sidebar-divider" />
 
