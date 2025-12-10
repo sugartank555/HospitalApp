@@ -1,0 +1,69 @@
+﻿@model IEnumerable<HospitalApp.Models.MedicalTest>
+
+<div class="card shadow-sm border-0">
+
+    <!-- HEADER -->
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-vials text-primary me-2"></i>
+            Danh sách xét nghiệm
+        </h3>
+        <p class="text-muted mt-1">Các xét nghiệm đã thực hiện của bạn</p>
+    </div>
+
+    <!-- BODY -->
+    <div class="card-body px-4 pb-4">
+
+        @if (!(Model?.Any() ?? false))
+        {
+            <div class="alert alert-info mb-0">
+                Bạn chưa có xét nghiệm nào.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="bg-light fw-semibold">
+                        <tr>
+                            <th style="width:80px;">Mã</th>
+                            <th style="width:260px;">Tên xét nghiệm</th>
+                            <th style="width:200px;">Ngày xét nghiệm</th>
+                            <th style="width:180px;">Tổng phí</th>
+                            <th class="text-end" style="width:160px;">Thao tác</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var t in Model)
+                        {
+                            <tr>
+                                <td>@t.Id</td>
+
+                                <td class="fw-semibold">@t.Name</td>
+
+                                <td>
+                                    <i class="bi bi-calendar-event text-secondary me-1"></i>
+                                    @t.TestTime?.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+
+                                <td class="fw-semibold text-primary">
+                                    @t.TotalPrice.ToString("N0") đ
+                                </td>
+
+                                <td class="text-end">
+                                    <a asp-action="Details"
+                                       asp-route-id="@t.Id"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i> Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+</div>

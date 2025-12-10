@@ -9,7 +9,7 @@ using HospitalApp.Models.Enums;
 namespace HospitalApp.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
-    [Authorize(Roles = "Admin,Doctor")]
+    [Authorize(Roles = "Admin,Doctor,Receptionist   ")]
     public class MedicalRecordsController : Controller
     {
         private readonly ApplicationDbContext _db;
@@ -110,27 +110,91 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var m = await _db.MedicalRecords.FindAsync(id);
-            if (m == null) return NotFound();
-            LoadDrop(m.PatientId, m.DoctorId, m.PaymentStatus);
-            return View(m);
+
+            var record = await _db.MedicalRecords
+                .Include(r => r.Information)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (record == null) return NotFound();
+
+            LoadDrop(record.PatientId, record.DoctorId, record.PaymentStatus);
+
+            // Nếu chưa có Information → tạo để View binding không lỗi
+            if (record.Information == null)
+            {
+                record.Information = new MedicalRecordInformation
+                {
+                    MedicalRecordId = record.Id
+                };
+            }
+
+            return View(record);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, MedicalRecord m)
+        public async Task<IActionResult> Edit(int id, MedicalRecord model)
         {
-            if (id != m.Id) return NotFound();
-            RemoveNav("Patient"); RemoveNav("Doctor");
-            if (!ModelState.IsValid) { LoadDrop(m.PatientId, m.DoctorId, m.PaymentStatus); return View(m); }
-            _db.Update(m); await _db.SaveChangesAsync(); return RedirectToAction(nameof(Index));
+            if (id != model.Id) return NotFound();
+
+            var record = await _db.MedicalRecords
+                .Include(r => r.Information)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (record == null) return NotFound();
+
+            RemoveNav("Patient");
+            RemoveNav("Doctor");
+
+            if (!ModelState.IsValid)
+            {
+                LoadDrop(model.PatientId, model.DoctorId, model.PaymentStatus);
+                return View(model);
+            }
+
+            // ===== Update main record =====
+            record.Time = model.Time;
+            record.PatientId = model.PatientId;
+            record.DoctorId = model.DoctorId;
+            record.Status = model.Status;
+            record.PaymentStatus = model.PaymentStatus;
+
+            // ===== Update MedicalRecordInformation =====
+            if (record.Information == null)
+                record.Information = new MedicalRecordInformation { MedicalRecordId = record.Id };
+
+            record.Information.BloodPressure = model.Information?.BloodPressure;
+            record.Information.BodyTemperature = model.Information?.BodyTemperature;
+            record.Information.HeartBeat = model.Information?.HeartBeat;
+            record.Information.Height = model.Information?.Height;
+            record.Information.Weight = model.Information?.Weight;
+            record.Information.Diagnose = model.Information?.Diagnose;
+            record.Information.Detail = model.Information?.Detail;
+            record.Information.Solution = model.Information?.Solution;
+
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var m = await _db.MedicalRecords.Include(x => x.Patient).Include(x => x.Doctor)
-                .AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            return m == null ? NotFound() : View(m);
+
+            var m = await _db.MedicalRecords
+                .Include(x => x.Patient)
+                .Include(x => x.Doctor)
+                .Include(x => x.Information)
+                .Include(x => x.MedicalTests)
+                    .ThenInclude(t => t.Services)
+                        .ThenInclude(s => s.Service)
+                .Include(x => x.Prescriptions)
+                    .ThenInclude(p => p.Medicines)
+                        .ThenInclude(mp => mp.Medicine)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (m == null) return NotFound();
+
+            return View(m);
         }
 
         public async Task<IActionResult> Delete(int? id)

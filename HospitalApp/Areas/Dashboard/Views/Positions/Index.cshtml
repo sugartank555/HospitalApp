@@ -2,64 +2,128 @@
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Chức danh";
-}
-<h2 class="mb-3">@ViewData["Title"]</h2>
-
-<p>
-    <a class="btn btn-primary" asp-action="Create">
-        <i class="fas fa-plus"></i> Thêm chức danh
-    </a>
-</p>
-@{
     var search = ViewData["Search"] as string;
 }
-<form asp-action="Index" method="get" class="mb-3">
-    <div class="input-group">
-        <input name="search" value="@search" class="form-control"
-               placeholder="Tìm theo tên vị trí… (có thể nhập ID)" />
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-search me-1"></i> Tìm kiếm
-        </button>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-        </a>
-    </div>
-</form>
 
+<div class="container-fluid py-3">
 
-@if (Model == null || !Model.Any())
-{
-    <div class="alert alert-info">Chưa có chức danh nào.</div>
-}
-else
-{
-    <table class="table table-striped align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Tên</th>
-                <th style="width:200px"></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var x in Model)
+    <div class="card shadow-sm border-0">
+
+        <!-- HEADER -->
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="fas fa-briefcase me-2"></i>
+                Danh sách chức danh
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <!-- ACTION -->
+            <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="fas fa-plus-circle me-1"></i> Thêm chức danh
+                </a>
+            </div>
+
+            <!-- SEARCH -->
+            <form asp-action="Index" method="get" class="mb-3">
+                <div class="input-group">
+                    <input name="search"
+                           value="@search"
+                           class="form-control"
+                           placeholder="Tìm theo tên chức danh hoặc nhập ID..." />
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Tìm kiếm
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+
+            <!-- EMPTY -->
+            @if (!(Model?.Any() ?? false))
             {
-                <tr>
-                    <td>@x.Id</td>
-                    <td>@x.Name</td>
-                    <td class="text-nowrap">
-                        <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@x.Id">
-                            <i class="fas fa-eye"></i> Xem
-                        </a>
-                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@x.Id">
-                            <i class="fas fa-edit"></i> Sửa
-                        </a>
-                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">
-                            <i class="fas fa-trash-alt"></i> Xoá
-                        </a>
-                    </td>
-                </tr>
+                <div class="alert alert-info mb-0">
+                    Chưa có chức danh nào.
+                </div>
             }
-        </tbody>
-    </table>
-}
+            else
+            {
+                <!-- TABLE -->
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:80px;">ID</th>
+                                <th>Tên chức danh</th>
+                                <th style="width:220px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var x in Model)
+                            {
+                                <tr>
+                                    <td>@x.Id</td>
+                                    <td class="fw-semibold">@x.Name</td>
+                                    <td class="text-nowrap">
+
+                                        <a class="btn btn-sm btn-outline-info me-1"
+                                           asp-action="Details" asp-route-id="@x.Id">
+                                            <i class="fas fa-eye"></i> Xem
+                                        </a>
+
+                                        <a class="btn btn-sm btn-outline-primary me-1"
+                                           asp-action="Edit" asp-route-id="@x.Id">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </a>
+
+                                        <a class="btn btn-sm btn-outline-danger"
+                                           asp-action="Delete" asp-route-id="@x.Id">
+                                            <i class="fas fa-trash-alt"></i> Xoá
+                                        </a>
+
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav>
+                            <ul class="pagination">
+
+                                @if (ViewBag.Page > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=@(ViewBag.Page - 1)&search=@ViewData["Search"]">«</a>
+                                    </li>
+                                }
+
+                                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.Page ? "active" : "")">
+                                        <a class="page-link" href="?page=@i&search=@ViewData["Search"]">@i</a>
+                                    </li>
+                                }
+
+                                @if (ViewBag.Page < ViewBag.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=@(ViewBag.Page + 1)&search=@ViewData["Search"]">»</a>
+                                    </li>
+                                }
+
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            }
+        </div>
+
+    </div>
+
+</div>

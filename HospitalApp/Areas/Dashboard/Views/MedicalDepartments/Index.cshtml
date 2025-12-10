@@ -1,67 +1,144 @@
-﻿@model IEnumerable<HospitalApp.Models.MedicalDepartment>
+﻿@model HospitalApp.ViewModels.MedicalDepartmentIndexViewModel
+
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Khoa/Phòng ban";
-}
-<h2 class="mb-3">@ViewData["Title"]</h2>
+    ViewData["Title"] = "Khoa / Phòng ban";
 
-<p>
-    <a class="btn btn-primary" asp-action="Create">
-        <i class="fas fa-plus"></i> Thêm khoa/phòng ban
-    </a>
-</p>
-@{
-    var search = ViewData["Search"] as string;
+    var search = Model.Search;
+    var paging = Model.PagingInfo;
 }
-<form asp-action="Index" method="get" class="mb-3">
-    <div class="input-group">
-        <input name="search" value="@search" class="form-control"
-               placeholder="Tìm theo tên hoặc mô tả khoa/phòng..." />
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-search me-1"></i> Tìm kiếm
-        </button>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
-        </a>
-    </div>
-</form>
 
+<div class="px-4 py-3">
 
-@if (Model == null || !Model.Any())
-{
-    <div class="alert alert-info">Chưa có khoa/phòng ban nào.</div>
-}
-else
-{
-    <table class="table table-striped align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Tên</th>
-                <th>Mô tả</th>
-                <th style="width:220px"></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var x in Model)
+    <div class="card shadow-sm border-0">
+
+        <!-- Header -->
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="fas fa-hospital-user me-2"></i>
+                Danh sách khoa / phòng ban
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <!-- Action button -->
+            <div class="d-flex justify-content-between flex-wrap gap-2 mb-3">
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="fas fa-plus-circle me-1"></i> Thêm khoa/phòng ban
+                </a>
+            </div>
+
+            <!-- Search -->
+            <form asp-action="Index" method="get" class="mb-3">
+                <div class="input-group">
+                    <input name="search"
+                           value="@search"
+                           class="form-control"
+                           placeholder="Tìm theo tên hoặc mô tả..." />
+
+                    <button class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Tìm kiếm
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+
+            <!-- Empty -->
+            @if (!(Model.Items?.Any() ?? false))
             {
-                <tr>
-                    <td>@x.Id</td>
-                    <td>@x.Name</td>
-                    <td>@x.Description</td>
-                    <td class="text-nowrap">
-                        <a class="btn btn-sm btn-outline-info" asp-action="Details" asp-route-id="@x.Id">
-                            <i class="fas fa-eye"></i> Xem
-                        </a>
-                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@x.Id">
-                            <i class="fas fa-edit"></i> Sửa
-                        </a>
-                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@x.Id">
-                            <i class="fas fa-trash-alt"></i> Xoá
-                        </a>
-                    </td>
-                </tr>
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle me-2"></i> Chưa có khoa/phòng ban nào.
+                </div>
             }
-        </tbody>
-    </table>
-}
+            else
+            {
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:80px">ID</th>
+                                <th style="width:260px">Tên khoa</th>
+                                <th>Mô tả</th>
+                                <th style="width:220px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var x in Model.Items)
+                            {
+                                <tr>
+                                    <td>@x.Id</td>
+                                    <td class="fw-semibold">@x.Name</td>
+                                    <td>@(string.IsNullOrWhiteSpace(x.Description) ? "-" : x.Description)</td>
+
+                                    <td class="text-nowrap">
+                                        <a class="btn btn-sm btn-outline-info me-1"
+                                           asp-action="Details" asp-route-id="@x.Id">
+                                            <i class="fas fa-eye"></i> Xem
+                                        </a>
+
+                                        <a class="btn btn-sm btn-outline-primary me-1"
+                                           asp-action="Edit" asp-route-id="@x.Id">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </a>
+
+                                        <a class="btn btn-sm btn-outline-danger"
+                                           asp-action="Delete" asp-route-id="@x.Id">
+                                            <i class="fas fa-trash-alt"></i> Xoá
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (paging.TotalPages > 1)
+                {
+                    <nav aria-label="Phân trang khoa/phòng ban" class="mt-3">
+                        <ul class="pagination justify-content-center mb-0">
+
+                            <!-- Prev -->
+                            <li class="page-item @(paging.PageIndex <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(paging.PageIndex - 1)"
+                                   asp-route-search="@search">
+                                    «
+                                </a>
+                            </li>
+
+                            @for (int i = 1; i <= paging.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == paging.PageIndex ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-page="@i"
+                                       asp-route-search="@search">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Next -->
+                            <li class="page-item @(paging.PageIndex >= paging.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@(paging.PageIndex + 1)"
+                                   asp-route-search="@search">
+                                    »
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+        </div>
+
+    </div>
+</div>

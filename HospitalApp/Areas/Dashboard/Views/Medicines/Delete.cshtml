@@ -3,13 +3,54 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Xoá thuốc";
 }
-<h2>@ViewData["Title"]</h2>
 
-<p>Bạn có chắc muốn xoá thuốc <strong>@Model.Name</strong> (#@Model.Id)?</p>
+<div class="container-fluid py-3">
 
-<form method="post" asp-action="Delete">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <button class="btn btn-danger">Xoá</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+    <div class="card shadow-sm border-0">
+
+        <!-- Header -->
+        <div class="card-header bg-danger text-white py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Xoá thuốc
+            </h4>
+        </div>
+
+        <!-- Body -->
+        <div class="card-body">
+
+            <div class="alert alert-warning">
+                <strong>Bạn có chắc chắn muốn xoá thuốc này?</strong>
+            </div>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-3 fw-semibold">ID</dt>
+                <dd class="col-sm-9">@Model.Id</dd>
+
+                <dt class="col-sm-3 fw-semibold">Tên thuốc</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+
+                <dt class="col-sm-3 fw-semibold">Giá</dt>
+                <dd class="col-sm-9">@Model.Price.ToString("N0") VNĐ</dd>
+            </dl>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer bg-light d-flex justify-content-end gap-2">
+            <form method="post" asp-action="Delete" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <button class="btn btn-danger px-4">
+                    <i class="bi bi-trash me-1"></i> Xoá
+                </button>
+            </form>
+
+            <a class="btn btn-secondary px-3" asp-action="Index">
+                <i class="bi bi-arrow-left me-1"></i> Hủy
+            </a>
+        </div>
+
+    </div>
+
+</div>

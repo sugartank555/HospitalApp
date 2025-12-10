@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using HospitalApp.Data;
+using HospitalApp.Models;
+using HospitalApp.Models.ViewModels.HospitalApp.ViewModels;
+using HospitalApp.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using HospitalApp.Data;
-using HospitalApp.Models;
 
 namespace HospitalApp.Areas.Dashboard.Controllers
 {
@@ -14,79 +16,130 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _db;
         public PrescriptionsController(ApplicationDbContext db) => _db = db;
 
-        // GET: /Dashboard/Prescriptions
-        public async Task<IActionResult> Index(string? search, string? sortOrder)
+        // ============================
+        // INDEX
+        // ============================
+        public async Task<IActionResult> Index(string? search, string? sortOrder, int page = 1, int pageSize = 10)
         {
             var q = _db.Prescriptions
-                .Include(p => p.MedicalRecord)
+                .Include(p => p.MedicalRecord).ThenInclude(m => m.Patient)
                 .AsNoTracking()
                 .AsQueryable();
 
-            // ===== TÌM KIẾM =====
+            // TÌM KIẾM
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var k = search.Trim();
 
-                // Nếu nhập ngày -> lọc theo CreatedAt.Date
                 if (DateTime.TryParse(k, out var dt))
-                {
-                    var d = dt.Date;
-                    q = q.Where(p => p.CreatedAt.Date == d
-                                     || p.MedicalRecordId.ToString() == k
-                                     || p.Id.ToString() == k);
-                }
-                // Nếu nhập số -> thử coi như Id hoặc MedicalRecordId
+                    q = q.Where(p => p.CreatedAt.Date == dt.Date);
                 else if (int.TryParse(k, out var num))
-                {
                     q = q.Where(p => p.Id == num || p.MedicalRecordId == num);
-                }
-                else
-                {
-                    // (tuỳ chọn) Không có tên/ghi chú trong model, nên chỉ giữ tìm theo ngày/ID/MRId.
-                    // Nếu muốn tìm theo tên thuốc trong toa, cần Join sang Medicines (tốn hơn).
-                }
 
-                ViewData["Search"] = k; // giữ lại trên ô input
+                ViewData["Search"] = k;
             }
 
-            // ===== SẮP XẾP =====
+            // SẮP XẾP
             ViewData["CurrentSort"] = sortOrder;
-            ViewData["DateSort"] = string.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["IdSort"] = sortOrder == "id" ? "id_desc" : "id";
+            ViewData["DateSort"] = sortOrder == "date" ? "date_desc" : "date";
             ViewData["MrSort"] = sortOrder == "mr" ? "mr_desc" : "mr";
 
             q = sortOrder switch
             {
-                "date_desc" => q.OrderByDescending(p => p.CreatedAt),
                 "id" => q.OrderBy(p => p.Id),
                 "id_desc" => q.OrderByDescending(p => p.Id),
-                "mr" => q.OrderBy(p => p.MedicalRecordId).ThenByDescending(p => p.CreatedAt),
-                "mr_desc" => q.OrderByDescending(p => p.MedicalRecordId).ThenByDescending(p => p.CreatedAt),
-                _ => q.OrderBy(p => p.CreatedAt) // mặc định: cũ -> mới (đổi sang Desc nếu thích)
+                "date" => q.OrderBy(p => p.CreatedAt),
+                "date_desc" => q.OrderByDescending(p => p.CreatedAt),
+                "mr" => q.OrderBy(p => p.MedicalRecordId),
+                "mr_desc" => q.OrderByDescending(p => p.MedicalRecordId),
+                _ => q.OrderByDescending(p => p.CreatedAt)
             };
 
-            var data = await q.ToListAsync();
-            return View(data);
+            // PHÂN TRANG
+            var totalItems = await q.CountAsync();
+
+            var items = await q
+                .Select(p => new PrescriptionIndexItem
+                {
+                    Id = p.Id,
+                    MedicalRecordId = p.MedicalRecordId,
+                    PatientName = p.MedicalRecord.Patient.FullName,
+                    CreatedAt = p.CreatedAt
+                })
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var vm = new PrescriptionIndexViewModel
+            {
+                Items = items,
+                PagingInfo = new PagingInfo
+                {
+                    PageIndex = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+                },
+                Search = search,
+                SortOrder = sortOrder
+            };
+
+            return View(vm);
         }
 
+        // ============================
+        // PRINT INVOICE
+        // ============================
+        public async Task<IActionResult> PrintInvoice(int id)
+        {
+            var pres = await _db.Prescriptions
+                .Include(p => p.MedicalRecord).ThenInclude(m => m.Patient)
+                .Include(p => p.MedicalRecord).ThenInclude(m => m.Doctor)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
 
+            if (pres == null) return NotFound();
+
+            var items = await _db.MedicineOfPrescriptions
+                .Include(i => i.Medicine)
+                .Where(i => i.PrescriptionId == id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.Items = items;
+
+            return View("PrintInvoice", pres);
+        }
+
+        // ============================
+        // DETAILS
+        // ============================
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var m = await _db.Prescriptions.Include(p => p.MedicalRecord).AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.Id == id);
-            if (m == null) return NotFound();
 
-            // Lấy items để hiển thị kèm
+            var pres = await _db.Prescriptions
+                .Include(p => p.MedicalRecord)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (pres == null) return NotFound();
+
             var items = await _db.MedicineOfPrescriptions
-                .Where(i => i.PrescriptionId == m.Id)
                 .Include(i => i.Medicine)
+                .Where(i => i.PrescriptionId == id)
                 .AsNoTracking()
                 .ToListAsync();
+
             ViewBag.Items = items;
-            return View(m);
+
+            return View(pres);
         }
 
+        // ============================
+        // CREATE
+        // ============================
         public IActionResult Create()
         {
             LoadMR();
@@ -97,155 +150,248 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public async Task<IActionResult> Create(Prescription model)
         {
             RemoveNav("MedicalRecord");
-            if (!ModelState.IsValid) { LoadMR(model.MedicalRecordId); return View(model); }
+
+            if (!ModelState.IsValid)
+            {
+                LoadMR(model.MedicalRecordId);
+                return View(model);
+            }
+
             _db.Prescriptions.Add(model);
             await _db.SaveChangesAsync();
 
-            // Sau khi tạo toa -> chuyển sang quản lý thuốc
             return RedirectToAction(nameof(Items), new { id = model.Id });
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        // ============================
+        // EDIT
+        // ============================
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null) return NotFound();
-            var m = await _db.Prescriptions.FindAsync(id);
-            if (m == null) return NotFound();
-            LoadMR(m.MedicalRecordId);
-            return View(m);
+            var pres = await _db.Prescriptions.FindAsync(id);
+            if (pres == null) return NotFound();
+
+            LoadMR(pres.MedicalRecordId);
+            return View(pres);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Prescription model)
         {
             if (id != model.Id) return NotFound();
+
             RemoveNav("MedicalRecord");
-            if (!ModelState.IsValid) { LoadMR(model.MedicalRecordId); return View(model); }
+
+            if (!ModelState.IsValid)
+            {
+                LoadMR(model.MedicalRecordId);
+                return View(model);
+            }
+
             _db.Update(model);
             await _db.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int? id)
+        // ============================
+        // DELETE
+        // ============================
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null) return NotFound();
-            var m = await _db.Prescriptions.Include(p => p.MedicalRecord)
-                        .AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            return m == null ? NotFound() : View(m);
+            var pres = await _db.Prescriptions
+                .Include(p => p.MedicalRecord)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            return pres == null ? NotFound() : View(pres);
         }
 
         [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            // Xoá items trước (nếu không cascade)
             var items = await _db.MedicineOfPrescriptions
-                .Where(x => x.PrescriptionId == id).ToListAsync();
-            if (items.Count > 0) _db.MedicineOfPrescriptions.RemoveRange(items);
+                .Where(x => x.PrescriptionId == id)
+                .ToListAsync();
 
-            var m = await _db.Prescriptions.FindAsync(id);
-            if (m != null) { _db.Prescriptions.Remove(m); await _db.SaveChangesAsync(); }
+            if (items.Any())
+                _db.MedicineOfPrescriptions.RemoveRange(items);
+
+            var pres = await _db.Prescriptions.FindAsync(id);
+            if (pres != null)
+            {
+                _db.Prescriptions.Remove(pres);
+                await _db.SaveChangesAsync();
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
-        // ===== Quản lý thuốc trong toa =====
-
-        // Trang quản lý thuốc
+        // ============================
+        // ITEMS (THUỐC)
+        // ============================
         public async Task<IActionResult> Items(int id)
         {
             var pres = await _db.Prescriptions
                 .Include(p => p.MedicalRecord)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
+
             if (pres == null) return NotFound();
 
             var items = await _db.MedicineOfPrescriptions
-                .Where(i => i.PrescriptionId == id)
                 .Include(i => i.Medicine)
-                .AsNoTracking()
+                .Where(i => i.PrescriptionId == id)
                 .ToListAsync();
 
             ViewBag.Prescription = pres;
             ViewBag.Items = items;
-            LoadMedicines(); // dropdown thuốc
+
+            LoadMedicines();
+
             return View();
         }
 
-        // Thêm thuốc vào toa (upsert theo unique (PrescriptionId, MedicineId))
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddItem(int id, int medicineId, int quantity = 1)
+        // ADD ITEM
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddItem(int id, int medicineId, int quantity = 1, string? note = null)
         {
             if (quantity < 1) quantity = 1;
-
-            var pres = await _db.Prescriptions.FindAsync(id);
-            if (pres == null) return NotFound();
 
             var exist = await _db.MedicineOfPrescriptions
                 .FirstOrDefaultAsync(x => x.PrescriptionId == id && x.MedicineId == medicineId);
 
             if (exist != null)
             {
-                // tăng số lượng
-                // (yêu cầu entity MedicineOfPrescription có thuộc tính Quantity kiểu int)
                 exist.Quantity += quantity;
+
+                if (!string.IsNullOrWhiteSpace(note))
+                    exist.Note = note;
+
                 _db.Update(exist);
             }
             else
             {
-                var item = new MedicineOfPrescription
+                _db.MedicineOfPrescriptions.Add(new MedicineOfPrescription
                 {
                     PrescriptionId = id,
                     MedicineId = medicineId,
-                    Quantity = quantity   // nếu model của bạn dùng tên khác, đổi ở đây
-                };
-                _db.MedicineOfPrescriptions.Add(item);
+                    Quantity = quantity,
+                    Note = note
+                });
             }
 
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Items), new { id });
         }
 
-        // Cập nhật số lượng
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateItem(int id, int medicineId, int quantity)
+        // UPDATE ITEM
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateItem(int id, int medicineId, int quantity, string? note)
         {
-            if (quantity < 1) quantity = 1;
             var item = await _db.MedicineOfPrescriptions
                 .FirstOrDefaultAsync(x => x.PrescriptionId == id && x.MedicineId == medicineId);
-            if (item == null) return RedirectToAction(nameof(Items), new { id });
 
-            item.Quantity = quantity;
-            await _db.SaveChangesAsync();
+            if (item != null)
+            {
+                item.Quantity = quantity < 1 ? 1 : quantity;
+                item.Note = note;
+
+                _db.Update(item);
+                await _db.SaveChangesAsync();
+            }
+
             return RedirectToAction(nameof(Items), new { id });
         }
 
-        // Xoá 1 dòng thuốc
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // REMOVE ITEM
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveItem(int id, int medicineId)
         {
             var item = await _db.MedicineOfPrescriptions
                 .FirstOrDefaultAsync(x => x.PrescriptionId == id && x.MedicineId == medicineId);
+
             if (item != null)
             {
                 _db.MedicineOfPrescriptions.Remove(item);
                 await _db.SaveChangesAsync();
             }
+
             return RedirectToAction(nameof(Items), new { id });
         }
 
-        // ===== Helpers =====
+        // ============================
+        // CREATE FROM MEDICAL TEST
+        // ============================
+        public async Task<IActionResult> CreateFromTest(int testId)
+        {
+            var test = await _db.MedicalTests
+                .Include(t => t.MedicalRecord)
+                .FirstOrDefaultAsync(t => t.Id == testId);
 
+            if (test == null) return NotFound();
+
+            if (test.PrescriptionId != null)
+                return RedirectToAction(nameof(Items), new { id = test.PrescriptionId });
+
+            var pres = new Prescription
+            {
+                MedicalRecordId = test.MedicalRecordId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Prescriptions.Add(pres);
+            await _db.SaveChangesAsync();
+
+            test.PrescriptionId = pres.Id;
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Items), new { id = pres.Id });
+        }
+
+        // ============================
+        // HELPERS
+        // ============================
         private void LoadMR(int? selected = null)
-            => ViewData["MedicalRecordId"] = new SelectList(_db.MedicalRecords.AsNoTracking(), "Id", "Id", selected);
+        {
+            var list = _db.MedicalRecords
+                .Include(m => m.Patient)
+                .Select(m => new { m.Id, Name = m.Patient.FullName })
+                .ToList();
+
+            ViewData["MedicalRecordId"] =
+                new SelectList(list, "Id", "Name", selected);
+        }
 
         private void LoadMedicines(int? selected = null)
-            => ViewData["MedicineId"] = new SelectList(_db.Medicines.AsNoTracking(), "Id", "Name", selected);
+        {
+            ViewData["MedicineId"] = new SelectList(
+                _db.Medicines, "Id", "Name", selected);
+        }
 
         private void RemoveNav(string key)
         {
-            foreach (var k in ModelState.Keys.Where(k => k.Equals(key) || k.StartsWith(key + ".", StringComparison.OrdinalIgnoreCase)).ToList())
+            foreach (var k in ModelState.Keys.Where(k => k.StartsWith(key)))
                 ModelState.Remove(k);
         }
+        public async Task<IActionResult> PrintItems(int id)
+        {
+            var pres = await _db.Prescriptions
+                .Include(p => p.MedicalRecord).ThenInclude(m => m.Patient)
+                .Include(p => p.MedicalRecord).ThenInclude(m => m.Doctor)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (pres == null) return NotFound();
+
+            var items = await _db.MedicineOfPrescriptions
+                .Include(i => i.Medicine)
+                .Where(i => i.PrescriptionId == id)
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.Items = items;
+
+            return View("PrintItems", pres);
+        }
+
     }
 }

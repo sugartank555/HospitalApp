@@ -1,20 +1,51 @@
 ﻿@model HospitalApp.Models.Position
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Sửa chức danh";
 }
-<h2>Sửa chức danh</h2>
-<form method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+
+<div class="container-fluid py-4">
+
+    <div class="card shadow-sm border-0">
+
+        <!-- HEADER -->
+        <div class="card-header bg-warning text-dark py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="fas fa-edit me-2"></i>
+                Sửa chức danh
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <!-- Tên chức danh -->
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Nhập tên chức danh..." />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> Lưu
+                    </button>
+                    <a class="btn btn-secondary px-4" asp-action="Index">
+                        <i class="fas fa-arrow-left me-1"></i> Hủy
+                    </a>
+                </div>
+            </form>
+
+        </div>
     </div>
-    <button class="btn btn-primary">Lưu</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

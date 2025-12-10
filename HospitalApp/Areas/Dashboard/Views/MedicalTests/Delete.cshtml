@@ -1,12 +1,67 @@
 ﻿@model HospitalApp.Models.MedicalTest
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Xoá xét nghiệm";
 }
-<h2>Xoá xét nghiệm</h2>
-<p>Bạn có chắc muốn xoá xét nghiệm <strong>@Model.Name</strong> (#@Model.Id)?</p>
-<form method="post" asp-action="Delete">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <button class="btn btn-danger">Xoá</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+
+<div class="card shadow-sm border-0">
+
+    <!-- Header -->
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold text-danger m-0">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Xác nhận xoá xét nghiệm
+        </h3>
+        <p class="text-muted mt-1">Hành động này không thể hoàn tác.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body px-4 pb-4">
+
+        <p class="fs-5">
+            Bạn có chắc chắn muốn xoá xét nghiệm
+            <strong class="text-dark">@Model.Name</strong> (ID: <strong>@Model.Id</strong>)?
+        </p>
+
+        <ul class="list-unstyled ms-2 mt-3">
+            <li class="mb-2">
+                <i class="fas fa-microscope text-secondary me-2"></i>
+                <strong>Tên:</strong> @Model.Name
+            </li>
+
+            <li class="mb-2">
+                <i class="fas fa-clock text-secondary me-2"></i>
+                <strong>Thời gian:</strong> @Model.TestTime?.ToString("dd/MM/yyyy HH:mm")
+            </li>
+
+            <li class="mb-2">
+                <i class="fas fa-money-bill-wave text-secondary me-2"></i>
+                <strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0") VNĐ
+            </li>
+
+            <li class="mb-2">
+                <i class="fas fa-file-medical text-secondary me-2"></i>
+                <strong>Thuộc hồ sơ khám:</strong> @Model.MedicalRecordId
+            </li>
+        </ul>
+
+        <p class="text-danger fw-semibold mt-3">
+            Sau khi xoá, dữ liệu sẽ bị mất vĩnh viễn khỏi hệ thống!
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+        <a asp-action="Index" class="btn btn-light border">
+            <i class="fas fa-times me-1"></i> Hủy
+        </a>
+
+        <form method="post" asp-action="Delete">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <button class="btn btn-danger px-4">
+                <i class="fas fa-trash-alt me-1"></i> Xoá xét nghiệm
+            </button>
+        </form>
+    </div>
+</div>

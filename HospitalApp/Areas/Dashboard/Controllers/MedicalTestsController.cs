@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using HospitalApp.Data;
+using HospitalApp.Models;
+using HospitalApp.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using HospitalApp.Data;
-using HospitalApp.Models;
 
 namespace HospitalApp.Areas.Dashboard.Controllers
 {
@@ -14,18 +15,15 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _db;
         public MedicalTestsController(ApplicationDbContext db) => _db = db;
 
-        // GET: /Dashboard/MedicalTests
-        // GET: /Dashboard/MedicalTests
-        public async Task<IActionResult> Index(string? search, string? sortOrder, int page = 1)
+        public async Task<IActionResult> Index(string? search, string? sortOrder, int page = 1, int pageSize = 10)
         {
-            const int pageSize = 10;
-
             var q = _db.MedicalTests
-                .Include(t => t.MedicalRecord)
+                .Include(t => t.MedicalRecord).ThenInclude(m => m.Patient)
+                .Include(t => t.MedicalRecord).ThenInclude(m => m.Doctor)
                 .AsNoTracking()
                 .AsQueryable();
 
-            // ===== TÌM KIẾM =====
+            // ===== SEARCH =====
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var k = search.Trim();
@@ -35,15 +33,13 @@ namespace HospitalApp.Areas.Dashboard.Controllers
                     var d = dt.Date;
                     q = q.Where(t =>
                         (t.TestTime.HasValue && t.TestTime.Value.Date == d) ||
-                        t.Name.Contains(k) ||
-                        t.MedicalRecordId.ToString() == k);
+                        t.Name.Contains(k));
                 }
                 else if (decimal.TryParse(k, out var price))
                 {
                     q = q.Where(t =>
                         t.TotalPrice == price ||
-                        t.Name.Contains(k) ||
-                        t.MedicalRecordId.ToString() == k);
+                        t.Name.Contains(k));
                 }
                 else if (int.TryParse(k, out var num))
                 {
@@ -57,78 +53,158 @@ namespace HospitalApp.Areas.Dashboard.Controllers
                     q = q.Where(t => t.Name.Contains(k));
                 }
 
-                ViewData["Search"] = k; // giữ giá trị ô tìm kiếm
+                ViewData["Search"] = k;
             }
 
-            // Tổng trước khi trang
-            var totalItems = await q.CountAsync();
-
-            // ===== SẮP XẾP =====
+            // ===== SORT =====
             ViewData["CurrentSort"] = sortOrder;
             ViewData["NameSort"] = sortOrder == "name" ? "name_desc" : "name";
             ViewData["TimeSort"] = sortOrder == "time" ? "time_desc" : "time";
             ViewData["PriceSort"] = sortOrder == "price" ? "price_desc" : "price";
-            ViewData["RecordIdSort"] = sortOrder == "record" ? "record_desc" : "record";
+            ViewData["RecordSort"] = sortOrder == "record" ? "record_desc" : "record";
 
             q = sortOrder switch
             {
                 "name" => q.OrderBy(t => t.Name),
                 "name_desc" => q.OrderByDescending(t => t.Name),
+
                 "time" => q.OrderBy(t => t.TestTime),
                 "time_desc" => q.OrderByDescending(t => t.TestTime),
+
                 "price" => q.OrderBy(t => t.TotalPrice),
                 "price_desc" => q.OrderByDescending(t => t.TotalPrice),
+
                 "record" => q.OrderBy(t => t.MedicalRecordId),
                 "record_desc" => q.OrderByDescending(t => t.MedicalRecordId),
+
                 _ => q.OrderByDescending(t => t.TestTime).ThenBy(t => t.Name)
             };
 
-            // ===== PHÂN TRANG =====
+            // ===== PAGING =====
+            var totalItems = await q.CountAsync();
             var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
             if (totalPages == 0) totalPages = 1;
             if (page < 1) page = 1;
             if (page > totalPages) page = totalPages;
 
-            var data = await q
+            var items = await q
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            ViewData["Page"] = page;
-            ViewData["TotalPages"] = totalPages;
-            ViewData["PageSize"] = pageSize;
-            ViewData["TotalItems"] = totalItems;
+            var vm = new MedicalTestIndexViewModel
+            {
+                Items = items,
+                PagingInfo = new PagingInfo
+                {
+                    PageIndex = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = totalPages
+                },
+                Search = search,
+                SortOrder = sortOrder
+            };
 
-            return View(data);
+            return View(vm);
         }
-
-
 
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
-            var m = await _db.MedicalTests.Include(t => t.MedicalRecord)
-                        .AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            var m = await _db.MedicalTests
+                .Include(t => t.MedicalRecord)
+                .ThenInclude(m => m.Patient)
+                .Include(t => t.MedicalRecord)
+                .ThenInclude(m => m.Doctor)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
             return m == null ? NotFound() : View(m);
         }
 
         public IActionResult Create()
         {
-            LoadMR();
-            return View();
-        }
+            var vm = new CreateMedicalTestVM
+            {
+                MedicalRecordList = _db.MedicalRecords
+                    .Include(m => m.Patient)
+                    .Select(m => new SelectListItem
+                    {
+                        Value = m.Id.ToString(),
+                        Text = $"#{m.Id} – {m.Patient.FullName} ({m.Time:dd/MM/yyyy})"
+                    }),
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MedicalTest model)
+                ServiceList = _db.Services
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = $"{s.Name} – {s.Price:N0}đ"
+                    })
+            };
+
+            return View(vm);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+      
+        public async Task<IActionResult> Create(CreateMedicalTestVM vm)
         {
-            RemoveNav("MedicalRecord");
             if (!ModelState.IsValid)
             {
-                LoadMR(model.MedicalRecordId);
-                return View(model);
+                vm.MedicalRecordList = _db.MedicalRecords
+                    .Include(m => m.Patient)
+                    .Select(m => new SelectListItem
+                    {
+                        Value = m.Id.ToString(),
+                        Text = $"#{m.Id} – {m.Patient.FullName}"
+                    });
+
+                vm.ServiceList = _db.Services
+                    .Select(s => new SelectListItem
+                    {
+                        Value = s.Id.ToString(),
+                        Text = $"{s.Name} – {s.Price:N0}đ"
+                    });
+
+                return View(vm);
             }
-            _db.MedicalTests.Add(model);
+
+            // 1️⃣ Tạo test trước
+            var test = new MedicalTest
+            {
+                Name = vm.Name,
+                TestTime = vm.TestTime ?? DateTime.Now,
+                MedicalRecordId = vm.MedicalRecordId,
+                TotalPrice = 0m
+            };
+
+            _db.MedicalTests.Add(test);
+            await _db.SaveChangesAsync();  // BẮT BUỘC — để có TestId
+
+            // 2️⃣ Thêm dịch vụ vào test
+            decimal total = 0m;
+
+            foreach (var sid in vm.ServiceIds)
+            {
+                var service = await _db.Services.FindAsync(sid);
+                if (service == null) continue;
+
+                total += service.Price;
+
+                _db.ServiceOfMedicalTests.Add(new ServiceOfMedicalTest
+                {
+                    MedicalTestId = test.Id,   // DÙNG ID SAU KHI SAVE
+                    ServiceId = sid,
+                    Quantity = 1
+                });
+            }
+
+            // 3️⃣ Cập nhật tổng tiền
+            test.TotalPrice = total;
             await _db.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -159,8 +235,11 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var m = await _db.MedicalTests.Include(t => t.MedicalRecord)
-                        .AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            var m = await _db.MedicalTests
+                .Include(t => t.MedicalRecord)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
             return m == null ? NotFound() : View(m);
         }
 
@@ -168,12 +247,33 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var m = await _db.MedicalTests.FindAsync(id);
-            if (m != null) { _db.MedicalTests.Remove(m); await _db.SaveChangesAsync(); }
+            if (m != null)
+            {
+                _db.MedicalTests.Remove(m);
+                await _db.SaveChangesAsync();
+            }
             return RedirectToAction(nameof(Index));
         }
 
+        // ============================================================
+        // 🔥 HIỂN THỊ HỒ SƠ KHÁM ĐẦY ĐỦ (BN + BS + Chức danh + Ngày khám)
+        // ============================================================
         private void LoadMR(int? selected = null)
-            => ViewData["MedicalRecordId"] = new SelectList(_db.MedicalRecords.AsNoTracking(), "Id", "Id", selected);
+        {
+            var list = _db.MedicalRecords
+                .Include(m => m.Patient)
+                .Include(m => m.Doctor).ThenInclude(d => d.Position)
+                .AsNoTracking()
+                .Select(m => new
+                {
+                    m.Id,
+                    Display =
+                        $"#{m.Id} – BN: {m.Patient.FullName} – BS: {m.Doctor.FullName} ({m.Doctor.Position}) – {m.Time:dd/MM/yyyy}"
+                })
+                .ToList();
+
+            ViewData["MedicalRecordId"] = new SelectList(list, "Id", "Display", selected);
+        }
 
         private void RemoveNav(string key)
         {

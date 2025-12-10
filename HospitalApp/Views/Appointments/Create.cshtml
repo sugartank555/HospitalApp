@@ -4,59 +4,277 @@
     string patientName = (string)(ViewBag.PatientName ?? "");
     string selectedTime = (string)(ViewBag.TimeFrame ?? "");
 
-    // Khung giờ mẫu – sửa tùy lịch phòng khám của bạn
     string[] morning = { "08:00-08:30", "08:30-09:00", "09:00-09:30", "09:30-10:00", "10:00-10:30", "10:30-11:00" };
     string[] afternoon = { "13:30-14:00", "14:00-14:30", "14:30-15:00", "15:00-15:30", "15:30-16:00" };
 }
-<h2>@ViewData["Title"]</h2>
 
-<form method="post" class="row g-3">
-    @Html.AntiForgeryToken()
+<div class="container form-wrapper py-5">
+    <div class="card shadow-lg border-0 rounded-4 mx-auto">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4 text-center">
+            <h2 class="mb-1"><i class="bi bi-calendar-check me-2"></i>@ViewData["Title"]</h2>
+            <p class="small mb-0 opacity-75">Hãy chọn ngày, khung giờ và bác sĩ phù hợp để đặt lịch khám nhanh chóng</p>
+        </div>
 
-    <div class="col-md-5">
-        <label class="form-label">Tên bệnh nhân</label>
-        <input name="patientName" class="form-control" value="@patientName" placeholder="Ví dụ: Nguyễn Văn A" />
-        <div class="form-text">Để trống nếu dùng tên trong hồ sơ hiện tại.</div>
+        <div class="card-body bg-light-subtle p-4">
+            <form method="post" class="row g-4">
+                @Html.AntiForgeryToken()
+
+                <!-- Tên bệnh nhân -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Tên bệnh nhân</label>
+                    <input name="patientName" class="form-control shadow-sm"
+                           value="@patientName" placeholder="Nhập họ tên (ví dụ: Nguyễn Văn A)" />
+                    <div class="form-text text-secondary">
+                        Để trống nếu bạn muốn dùng tên trong hồ sơ cá nhân hiện tại.
+                    </div>
+                </div>
+
+                <!-- Ngày khám -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Ngày khám</label>
+                    <input type="date" name="date" class="form-control shadow-sm"
+                           value="@(ViewBag.Date ?? "")" required />
+                </div>
+
+                <!-- Khung giờ -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Khung giờ</label>
+                    <select name="timeFrame" class="form-select shadow-sm" required>
+                        <option value="">— Chọn khung giờ —</option>
+                        <optgroup label="Buổi sáng">
+                            @foreach (var s in morning)
+                            {
+                                <option value="@s" selected="@(string.Equals(selectedTime, s, StringComparison.OrdinalIgnoreCase))">@s</option>
+                            }
+                        </optgroup>
+                        <optgroup label="Buổi chiều">
+                            @foreach (var s in afternoon)
+                            {
+                                <option value="@s" selected="@(string.Equals(selectedTime, s, StringComparison.OrdinalIgnoreCase))">@s</option>
+                            }
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Bác sĩ có tìm kiếm và danh sách -->
+                <div class="col-md-6 position-relative">
+                    <label class="form-label fw-semibold">Chọn bác sĩ</label>
+
+                    <div id="doctorDropdown" class="dropdown-container shadow-sm">
+                        <div id="doctorSelected" class="dropdown-selected">
+                            — Chọn bác sĩ —
+                            <i class="bi bi-caret-down-fill ms-auto"></i>
+                        </div>
+
+                        <div id="doctorList" class="dropdown-list">
+                            <input type="text" id="doctorSearch" class="form-control search-box" placeholder="🔍 Tìm bác sĩ..." />
+                            <ul id="doctorItems" class="list-unstyled mb-0">
+                                @foreach (var x in doctors)
+                                {
+                                    <li class="doctor-item" data-id="@x.Id">
+                                        <div class="doctor-name fw-semibold text-primary">@x.FullName</div>
+
+                                        <!-- Chức vụ -->
+                                        <div class="doctor-meta small text-muted">
+                                            <i class="bi bi-person-badge me-1 text-secondary"></i>
+                                            @(x.Position?.Name ?? "Chưa có chức vụ")
+                                        </div>
+
+                                        <!-- Chuyên môn -->
+                                        <div class="doctor-meta small text-muted">
+                                            <i class="bi bi-briefcase-fill me-1 text-secondary"></i>
+                                            @(x.Expertise?.Name ?? "Chưa có chuyên môn")
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+
+
+                    </div>
+
+                    <input type="hidden" id="doctorId" name="doctorId" required />
+                    <div class="form-text text-secondary">Tìm và chọn bác sĩ đang làm việc tại phòng khám.</div>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="col-12 text-center mt-3">
+                    <button class="btn btn-primary btn-lg px-5 me-2">
+                        <i class="bi bi-send-check me-1"></i> Gửi yêu cầu
+                    </button>
+                    <a asp-controller="Appointments" asp-action="My" class="btn btn-outline-secondary btn-lg px-5">
+                        <i class="bi bi-clock-history me-1"></i> Lịch của tôi
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
+</div>
 
-    <div class="col-md-3">
-        <label class="form-label">Ngày khám</label>
-        <input type="date" name="date" class="form-control" value="@(ViewBag.Date ?? "")" required />
-    </div>
+@section Styles {
+    <style>
+        /* ===== Nền tổng ===== */
+        .form-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: calc(100vh - 150px);
+            background: linear-gradient(180deg, #f5f9ff 0%, #fdfdff 100%);
+        }
 
-    <div class="col-md-3">
-        <label class="form-label">Khung giờ</label>
-        <select name="timeFrame" class="form-select" required>
-            <option value="">— Chọn khung giờ —</option>
-            <optgroup label="Buổi sáng">
-                @foreach (var s in morning)
-                {
-                    <option value="@s" selected="@(string.Equals(selectedTime, s, StringComparison.OrdinalIgnoreCase))">@s</option>
-                }
-            </optgroup>
-            <optgroup label="Buổi chiều">
-                @foreach (var s in afternoon)
-                {
-                    <option value="@s" selected="@(string.Equals(selectedTime, s, StringComparison.OrdinalIgnoreCase))">@s</option>
-                }
-            </optgroup>
-        </select>
-       
-    </div>
+        .card {
+            width: 100%;
+            max-width: 1100px;
+            border-radius: 1.2rem;
+            background: #fff;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        }
 
-    <div class="col-md-6">
-        <label class="form-label">Bác sĩ</label>
-        <select name="doctorId" class="form-select" required>
-            @foreach (var d in doctors)
-            {
-                var sel = (int?)ViewBag.SelectedDoctorId == d.Id ? "selected" : null;
-                <option value="@d.Id" selected="@sel">@d.FullName</option>
+        .card-header {
+            background: linear-gradient(135deg, #007bff, #00b4ff);
+            border-bottom: none;
+        }
+
+        /* ===== Dropdown bác sĩ ===== */
+        .dropdown-container {
+            position: relative;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background: #fff;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+
+            .dropdown-container.open {
+                border-color: #007bff;
             }
-        </select>
-    </div>
 
-    <div class="col-12">
-        <button class="btn btn-primary">Gửi yêu cầu</button>
-        <a asp-controller="Appointments" asp-action="My" class="btn btn-outline-secondary">Lịch của tôi</a>
-    </div>
-</form>
+        .dropdown-selected {
+            display: flex;
+            align-items: center;
+            padding: 0.6rem 1rem;
+            font-size: 1rem;
+            color: #333;
+        }
+
+            .dropdown-selected i {
+                margin-left: auto;
+                color: #007bff;
+            }
+
+        /* ===== Danh sách ===== */
+        .dropdown-list {
+            display: none;
+            position: absolute;
+            top: 105%;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            z-index: 1000;
+            padding: 0.6rem;
+        }
+
+        .dropdown-container.open .dropdown-list {
+            display: block;
+        }
+
+        /* ===== Ô tìm kiếm ===== */
+        .search-box {
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* ===== Mục bác sĩ ===== */
+        .doctor-item {
+            padding: 0.5rem 0.7rem;
+            border-radius: 8px;
+            transition: all .15s;
+        }
+
+            .doctor-item:hover {
+                background-color: #e8f1ff;
+            }
+
+            .doctor-item .doctor-name {
+                color: #0d6efd;
+            }
+
+        /* ===== Cuộn đẹp ===== */
+        #doctorItems {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+            #doctorItems::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            #doctorItems::-webkit-scrollbar-thumb {
+                background: #007bff;
+                border-radius: 6px;
+            }
+
+        .form-text {
+            font-size: 0.85rem;
+            color: #6c757d !important;
+        }
+
+        /* ===== Responsive ===== */
+        @@media (max-width: 768px) {
+            .btn-lg
+
+        {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const dropdown = document.getElementById("doctorDropdown");
+            const selected = document.getElementById("doctorSelected");
+            const search = document.getElementById("doctorSearch");
+            const items = document.querySelectorAll(".doctor-item");
+            const hiddenInput = document.getElementById("doctorId");
+
+            // Toggle hiển thị danh sách
+            selected.addEventListener("click", () => {
+                dropdown.classList.toggle("open");
+                search.focus();
+            });
+
+            // Click ngoài để đóng dropdown
+            document.addEventListener("click", (e) => {
+                if (!dropdown.contains(e.target)) dropdown.classList.remove("open");
+            });
+
+            // Lọc danh sách theo từ khóa
+            search.addEventListener("keyup", () => {
+                const q = search.value.toLowerCase();
+                items.forEach(item => {
+                    const name = item.textContent.toLowerCase();
+                    item.style.display = name.includes(q) ? "block" : "none";
+                });
+            });
+
+            // Chọn bác sĩ
+            items.forEach(item => {
+                item.addEventListener("click", () => {
+                    const name = item.querySelector(".doctor-name").textContent;
+                    const id = item.dataset.id;
+                    selected.innerHTML = `<span>${name}</span> <i class="bi bi-check-circle-fill text-success ms-auto"></i>`;
+                    hiddenInput.value = id;
+                    dropdown.classList.remove("open");
+                });
+            });
+        });
+    </script>
+}

@@ -1,6 +1,4 @@
-﻿// ... using ở đầu file giữ nguyên
-
-using HospitalApp.Data;
+﻿using HospitalApp.Data;
 using HospitalApp.Models;
 using HospitalApp.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -27,21 +25,20 @@ public class DoctorsController : Controller
     // GET: /Dashboard/Doctors
     // GET: /Dashboard/Doctors
     [HttpGet("")]
-    public async Task<IActionResult> Index(string? search)
+    public async Task<IActionResult> Index(string? search, int page = 1, int pageSize = 10)
     {
         var q = _context.Doctors
             .Include(d => d.Position)
             .Include(d => d.Expertise)
-            .Include(d => d.User)           // nếu muốn tìm theo UserName/Email
+            .Include(d => d.User)
             .AsNoTracking()
             .AsQueryable();
 
+        // ===== TÌM KIẾM =====
         if (!string.IsNullOrWhiteSpace(search))
         {
             var k = search.Trim();
 
-            // Tìm theo: Họ tên, SĐT, Tên chức danh (Position), Tên chuyên môn (Expertise),
-            // và (tuỳ chọn) User.UserName, User.Email
             q = q.Where(d =>
                 (d.FullName != null && d.FullName.Contains(k)) ||
                 (d.PhoneNumber != null && d.PhoneNumber.Contains(k)) ||
@@ -53,13 +50,36 @@ public class DoctorsController : Controller
                 ))
             );
 
-            ViewData["Search"] = k; // giữ lại ô nhập
+            ViewData["Search"] = k;
         }
 
-        var data = await q.ToListAsync();
-        return View(data);
-    }
+        // ===== PHÂN TRANG =====
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
 
+        int totalItems = await q.CountAsync();
+
+        var items = await q
+            .OrderBy(d => d.FullName)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var vm = new HospitalApp.ViewModels.DoctorIndexViewModel
+        {
+            Items = items,
+            Search = search,
+            PagingInfo = new HospitalApp.ViewModels.PagingInfo
+            {
+                PageIndex = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+            }
+        };
+
+        return View(vm);
+    }
 
     // ===== CREATE =====
     [HttpGet("Create")]

@@ -3,21 +3,59 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Sửa toa thuốc";
 }
-<h2>@ViewData["Title"]</h2>
-<form method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="MedicalRecordId" class="form-label">Hồ sơ</label>
-        <select asp-for="MedicalRecordId" class="form-select" asp-items="ViewBag.MedicalRecordId"></select>
-        <span asp-validation-for="MedicalRecordId" class="text-danger"></span>
+<div class="card shadow-sm border-0">
+
+    <!-- Header -->
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-prescription-bottle-alt text-primary me-2"></i>
+            @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Chỉnh sửa thông tin toa thuốc #@Model.Id</p>
     </div>
 
-    <button class="btn btn-primary">Lưu</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <!-- Body -->
+        <div class="card-body px-4 pb-4">
+
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <!-- MedicalRecord -->
+            <div class="mb-3">
+                <label asp-for="MedicalRecordId" class="form-label fw-semibold">
+                    <i class="fas fa-file-medical me-1 text-secondary"></i> Hồ sơ khám
+                </label>
+
+                <select asp-for="MedicalRecordId"
+                        class="form-select form-select-lg"
+                        asp-items="ViewBag.MedicalRecordId">
+                </select>
+
+                <span asp-validation-for="MedicalRecordId" class="text-danger"></span>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+
+            <a asp-action="Index" class="btn btn-light border">
+                <i class="fas fa-arrow-left me-1"></i> Hủy
+            </a>
+
+            <button class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Lưu thay đổi
+            </button>
+
+        </div>
+
+    </form>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

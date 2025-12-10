@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using HospitalApp.Models;
 
@@ -30,12 +31,18 @@ namespace HospitalApp.Data
         {
             base.OnModelCreating(b);
 
-            // Kế thừa kiểu TPT
+            b.Entity<ApplicationUser>(entity => { entity.ToTable("Users"); });
+            b.Entity<IdentityRole>(entity => { entity.ToTable("Roles"); });
+            b.Entity<IdentityUserRole<string>>(entity => { entity.ToTable("UserRoles"); });
+            b.Entity<IdentityUserClaim<string>>(entity => { entity.ToTable("UserClaims"); });
+            b.Entity<IdentityUserLogin<string>>(entity => { entity.ToTable("UserLogins"); });
+            b.Entity<IdentityRoleClaim<string>>(entity => { entity.ToTable("RoleClaims"); });
+            b.Entity<IdentityUserToken<string>>(entity => { entity.ToTable("UserTokens"); });
+
             b.Entity<Staff>().ToTable("Staffs");
             b.Entity<Doctor>().ToTable("Doctors");
             b.Entity<Nursing>().ToTable("Nursings");
 
-            // Quan hệ với Identity (1-1 optional)
             b.Entity<Patient>()
                 .HasOne(p => p.User)
                 .WithOne(u => u.PatientProfile)
@@ -48,7 +55,6 @@ namespace HospitalApp.Data
                 .HasForeignKey<Staff>(s => s.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Staff bắt buộc Position, optional Expertise
             b.Entity<Staff>()
                 .HasOne(s => s.Position)
                 .WithMany(p => p.Staffs)
@@ -61,7 +67,6 @@ namespace HospitalApp.Data
                 .HasForeignKey(s => s.ExpertiseId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // AppointmentSchedule: tránh multiple cascade
             b.Entity<AppointmentSchedule>()
                 .HasOne(a => a.Patient)
                 .WithMany(p => p.Appointments)

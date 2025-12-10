@@ -1,19 +1,373 @@
 ﻿@model HospitalApp.Models.MedicalRecord
+@using HospitalApp.Models.Enums
+
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chi tiết hồ sơ khám";
+
+    // ===== TÍNH TỔNG TIỀN =====
+    decimal totalTest = 0m;
+    decimal totalMedicine = 0m;
+
+    if (Model.MedicalTests != null)
+    {
+        totalTest = Model.MedicalTests.Sum(t => t.TotalPrice);
+    }
+
+    if (Model.Prescriptions != null)
+    {
+        foreach (var pre in Model.Prescriptions)
+        {
+            if (pre.Medicines != null)
+            {
+                foreach (var item in pre.Medicines)
+                {
+                    var price = item.Medicine?.Price ?? 0m;
+                    totalMedicine += price * item.Quantity;
+                }
+            }
+        }
+    }
+
+    decimal grandTotal = totalTest + totalMedicine;
 }
-<h2>Chi tiết hồ sơ khám</h2>
-<dl class="row">
-    <dt class="col-sm-3">Thời gian</dt>
-    <dd class="col-sm-9">@Model.Time</dd>
-    <dt class="col-sm-3">Bệnh nhân</dt>
-    <dd class="col-sm-9">@Model.Patient?.FullName (@Model.PatientId)</dd>
-    <dt class="col-sm-3">Bác sĩ</dt>
-    <dd class="col-sm-9">@Model.Doctor?.FullName (@Model.DoctorId)</dd>
-    <dt class="col-sm-3">Thanh toán</dt>
-    <dd class="col-sm-9">@Model.PaymentStatus</dd>
-    <dt class="col-sm-3">Trạng thái</dt>
-    <dd class="col-sm-9">@Model.Status</dd>
-</dl>
-<a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
-<a class="btn btn-secondary" asp-action="Index">Về danh sách</a>
+
+@functions {
+    string PaymentText(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Unpaid => "Chưa thanh toán",
+        PaymentStatus.Paid => "Đã thanh toán",
+        PaymentStatus.Refunded => "Hoàn tiền",
+        _ => "Không rõ"
+    };
+
+    string PaymentBadge(PaymentStatus s) => s switch
+    {
+        PaymentStatus.Unpaid => "badge bg-warning text-dark",
+        PaymentStatus.Paid => "badge bg-success",
+        PaymentStatus.Refunded => "badge bg-info text-dark",
+        _ => "badge bg-secondary"
+    };
+
+    string RecordText(MedicalRecordStatus s) => s switch
+    {
+        MedicalRecordStatus.Open => "Mở",
+        MedicalRecordStatus.InProgress => "Đang xử lý",
+        MedicalRecordStatus.Closed => "Đã đóng",
+        _ => "Không rõ"
+    };
+
+    string RecordBadge(MedicalRecordStatus s) => s switch
+    {
+        MedicalRecordStatus.Open => "badge bg-primary",
+        MedicalRecordStatus.InProgress => "badge bg-warning text-dark",
+        MedicalRecordStatus.Closed => "badge bg-success",
+        _ => "badge bg-secondary"
+    };
+}
+
+<div class="card shadow-sm border-0">
+
+    <!-- HEADER + TỔNG HỢP NHANH -->
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <div>
+                <h3 class="fw-bold m-0">
+                    <i class="fas fa-file-medical text-primary me-2"></i>
+                    @ViewData["Title"]
+                </h3>
+                <p class="text-muted mt-1 mb-0">
+                    Hồ sơ #@Model.Id • Ngày khám: @Model.Time.ToString("dd/MM/yyyy HH:mm")
+                </p>
+            </div>
+
+            <div class="text-end">
+                <div>
+                    <span class="@RecordBadge(Model.Status) me-1">
+                        @RecordText(Model.Status)
+                    </span>
+                    <span class="@PaymentBadge(Model.PaymentStatus)">
+                        @PaymentText(Model.PaymentStatus)
+                    </span>
+                </div>
+                <div class="mt-2 fw-bold">
+                    Tổng chi phí: <span class="text-danger">@grandTotal.ToString("N0") đ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body px-4 pb-4">
+
+        <!-- ========================= -->
+        <!-- 1. THÔNG TIN CHUNG        -->
+        <!-- ========================= -->
+        <h5 class="fw-bold text-primary mb-3">1. Thông tin chung</h5>
+
+        <dl class="row mb-4">
+            <dt class="col-sm-4 fw-semibold text-secondary">
+                <i class="fas fa-user-injured me-1"></i> Bệnh nhân
+            </dt>
+            <dd class="col-sm-8">
+                @Model.Patient?.FullName (@Model.PatientId)
+            </dd>
+
+            <dt class="col-sm-4 fw-semibold text-secondary mt-3">
+                <i class="fas fa-user-md me-1"></i> Bác sĩ phụ trách
+            </dt>
+            <dd class="col-sm-8 mt-3">
+                @Model.Doctor?.FullName (@Model.DoctorId)
+            </dd>
+
+            <dt class="col-sm-4 fw-semibold text-secondary mt-3">
+                <i class="fas fa-clock me-1"></i> Thời gian khám
+            </dt>
+            <dd class="col-sm-8 mt-3">
+                @Model.Time.ToString("dd/MM/yyyy HH:mm")
+            </dd>
+        </dl>
+
+        <hr />
+
+        <!-- ========================= -->
+        <!-- 2. THÔNG TIN KHÁM LÂM SÀNG-->
+        <!-- ========================= -->
+        <h5 class="fw-bold text-primary mb-3">2. Thông tin khám lâm sàng</h5>
+
+        @if (Model.Information == null)
+        {
+            <p class="text-muted fst-italic">Chưa có thông tin khám lâm sàng.</p>
+        }
+        else
+        {
+            <dl class="row mb-4">
+                <dt class="col-sm-4 fw-semibold text-secondary">Huyết áp</dt>
+                <dd class="col-sm-8">@Model.Information.BloodPressure</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Nhiệt độ (°C)</dt>
+                <dd class="col-sm-8 mt-3">@Model.Information.BodyTemperature</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Nhịp tim (lần/phút)</dt>
+                <dd class="col-sm-8 mt-3">@Model.Information.HeartBeat</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Chiều cao (cm)</dt>
+                <dd class="col-sm-8 mt-3">@Model.Information.Height</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Cân nặng (kg)</dt>
+                <dd class="col-sm-8 mt-3">@Model.Information.Weight</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Triệu chứng / Mô tả</dt>
+                <dd class="col-sm-8 mt-3">@Model.Information.Detail</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Chẩn đoán</dt>
+                <dd class="col-sm-8 mt-3 text-danger fw-semibold">@Model.Information.Diagnose</dd>
+
+                <dt class="col-sm-4 fw-semibold text-secondary mt-3">Phương án điều trị</dt>
+                <dd class="col-sm-8 mt-3">@Model.Information.Solution</dd>
+            </dl>
+        }
+
+        <hr />
+
+        <!-- ========================= -->
+        <!-- 3. XÉT NGHIỆM             -->
+        <!-- ========================= -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold text-primary mb-0">3. Xét nghiệm</h5>
+            <a class="btn btn-sm btn-outline-primary"
+               asp-area="Dashboard" asp-controller="MedicalTests" asp-action="Create"
+               asp-route-medicalRecordId="@Model.Id">
+                <i class="fas fa-plus me-1"></i> Thêm xét nghiệm
+            </a>
+        </div>
+
+        @if (Model.MedicalTests == null || !Model.MedicalTests.Any())
+        {
+            <p class="text-muted fst-italic">Không có xét nghiệm nào.</p>
+        }
+        else
+        {
+            foreach (var test in Model.MedicalTests)
+            {
+                <div class="border rounded-3 p-3 mb-3">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <div>
+                            <h6 class="fw-bold mb-1">
+                                Xét nghiệm: @test.Name (ID: @test.Id)
+                            </h6>
+                            <div class="text-muted small">
+                                Thời gian: @test.TestTime?.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+                        <div class="fw-bold text-danger">
+                            Tổng: @test.TotalPrice.ToString("N0") đ
+                        </div>
+                    </div>
+
+                    @if (test.Services == null || !test.Services.Any())
+                    {
+                        <p class="text-muted fst-italic mt-2 mb-0">
+                            Chưa có dịch vụ xét nghiệm được gắn.
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Dịch vụ</th>
+                                        <th style="width:120px;">Đơn giá</th>
+                                        <th style="width:100px;">Số lượng</th>
+                                        <th style="width:140px;">Thành tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var sv in test.Services)
+                                    {
+                                        var price = sv.Service?.Price ?? 0m;
+                                        var sub = price * sv.Quantity;
+                                        <tr>
+                                            <td>@sv.Service?.Name</td>
+                                            <td>@price.ToString("N0") đ</td>
+                                            <td>@sv.Quantity</td>
+                                            <td>@sub.ToString("N0") đ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+
+            <p class="fw-bold text-end">
+                Tổng chi phí xét nghiệm: <span class="text-danger">@totalTest.ToString("N0") đ</span>
+            </p>
+        }
+
+        <hr />
+
+        <!-- ========================= -->
+        <!-- 4. TOA THUỐC             -->
+        <!-- ========================= -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="fw-bold text-primary mb-0">4. Toa thuốc</h5>
+            <a class="btn btn-sm btn-outline-success"
+               asp-area="Dashboard" asp-controller="Prescriptions" asp-action="Create"
+               asp-route-medicalRecordId="@Model.Id">
+                <i class="fas fa-plus me-1"></i> Thêm toa thuốc
+            </a>
+        </div>
+
+        @if (Model.Prescriptions == null || !Model.Prescriptions.Any())
+        {
+            <p class="text-muted fst-italic">Chưa có toa thuốc.</p>
+        }
+        else
+        {
+            foreach (var pre in Model.Prescriptions)
+            {
+                <div class="border rounded-3 p-3 mb-3">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold mb-2">
+                            Toa thuốc #@pre.Id – Ngày lập: @pre.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                        </h6>
+
+                        <div class="d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-info"
+                               asp-area="Dashboard" asp-controller="Prescriptions" asp-action="Details"
+                               asp-route-id="@pre.Id">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-area="Dashboard" asp-controller="Prescriptions" asp-action="Items"
+                               asp-route-id="@pre.Id">
+                                <i class="fas fa-pills"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-dark"
+                               asp-area="Dashboard" asp-controller="Prescriptions" asp-action="PrintInvoice"
+                               asp-route-id="@pre.Id" target="_blank">
+                                <i class="fas fa-print"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if (pre.Medicines == null || !pre.Medicines.Any())
+                    {
+                        <p class="text-muted fst-italic mb-0">Toa thuốc chưa có thuốc.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm table-striped align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Thuốc</th>
+                                        <th style="width:110px;">Số lượng</th>
+                                        <th style="width:130px;">Đơn giá</th>
+                                        <th style="width:150px;">Thành tiền</th>
+                                        <th>Hướng dẫn</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in pre.Medicines)
+                                    {
+                                        var price = item.Medicine?.Price ?? 0m;
+                                        var sub = price * item.Quantity;
+                                        <tr>
+                                            <td>@item.Medicine?.Name</td>
+                                            <td>@item.Quantity</td>
+                                            <td>@price.ToString("N0") đ</td>
+                                            <td>@sub.ToString("N0") đ</td>
+                                            <td>@item.Note</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            }
+
+            <p class="fw-bold text-end">
+                Tổng chi phí thuốc: <span class="text-danger">@totalMedicine.ToString("N0") đ</span>
+            </p>
+        }
+
+        <hr />
+
+        <!-- ========================= -->
+        <!-- 5. TỔNG KẾT              -->
+        <!-- ========================= -->
+        <div class="alert alert-secondary mb-0">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div>
+                    <div><strong>Tổng xét nghiệm:</strong> @totalTest.ToString("N0") đ</div>
+                    <div><strong>Tổng thuốc:</strong> @totalMedicine.ToString("N0") đ</div>
+                </div>
+                <div class="fs-5 fw-bold">
+                    Tổng chi phí hồ sơ:
+                    <span class="text-danger">@grandTotal.ToString("N0") đ</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+
+        <a asp-action="Index" class="btn btn-light border">
+            <i class="fas fa-arrow-left me-1"></i> Về danh sách
+        </a>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id"
+               class="btn btn-primary px-3">
+                <i class="fas fa-edit me-1"></i> Sửa hồ sơ
+            </a>
+        </div>
+
+    </div>
+</div>

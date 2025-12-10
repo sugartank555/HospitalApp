@@ -1,0 +1,65 @@
+﻿@model IEnumerable<HospitalApp.Models.MedicalRecord>
+
+<h2 class="mb-4">Hồ sơ bệnh án của tôi</h2>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Ngày khám</th>
+                    <th>Bác sĩ</th>
+                    <th>Trạng thái</th>
+                    <th>Thanh toán</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td>@r.Time.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@r.Doctor?.FullName</td>
+
+                        <!-- TRẠNG THÁI HỒ SƠ -->
+                        <td>
+                            @{
+                                var statusText = r.Status switch
+                                {
+                                    HospitalApp.Models.Enums.MedicalRecordStatus.Open => "Mới tạo",
+                                    HospitalApp.Models.Enums.MedicalRecordStatus.InProgress => "Đang khám",
+                                    HospitalApp.Models.Enums.MedicalRecordStatus.Closed => "Đã hoàn tất",
+                                    _ => "Không xác định"
+                                };
+                            }
+                            @statusText
+                        </td>
+
+                        <!-- TRẠNG THÁI THANH TOÁN -->
+                        <td>
+                            @{
+                                var paymentText = r.PaymentStatus switch
+                                {
+                                    HospitalApp.Models.Enums.PaymentStatus.Unpaid => "Chưa thanh toán",
+                                    HospitalApp.Models.Enums.PaymentStatus.Paid => "Đã thanh toán",
+                                    HospitalApp.Models.Enums.PaymentStatus.Refunded => "Hoàn tiền",
+                                    _ => "Không rõ"
+                                };
+                            }
+                            @paymentText
+                        </td>
+
+                        <td>
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="@Url.Action("Details", new { id = r.Id })">
+                                Xem chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>

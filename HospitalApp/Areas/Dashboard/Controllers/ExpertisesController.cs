@@ -13,35 +13,45 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         private readonly ApplicationDbContext _context;
         public ExpertisesController(ApplicationDbContext context) => _context = context;
 
-        // GET: Dashboard/Expertises
-        public async Task<IActionResult> Index(string? search)
+        // ================== INDEX + SEARCH + PAGINATION ==================
+        public async Task<IActionResult> Index(string? search, int page = 1)
         {
+            int pageSize = 10; // số dòng mỗi trang
+
             var q = _context.Expertises
                 .AsNoTracking()
                 .AsQueryable();
 
+            // ===== TÌM KIẾM =====
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var k = search.Trim();
 
                 if (int.TryParse(k, out var id))
-                {
                     q = q.Where(e => e.Id == id || e.Name.Contains(k));
-                }
                 else
-                {
                     q = q.Where(e => e.Name.Contains(k));
-                    // Hoặc dùng EF.Functions.Like nếu muốn LIKE SQL: 
-                    // q = q.Where(e => EF.Functions.Like(e.Name, $"%{k}%"));
-                }
 
-                ViewData["Search"] = k; // để giữ lại giá trị search
+                ViewData["Search"] = k;
             }
 
-            var data = await q.ToListAsync();
+            // ===== PHÂN TRANG =====
+            int totalItems = await q.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var data = await q
+                .OrderBy(e => e.Name) // luôn sắp xếp để tránh nhảy trang
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
+
             return View(data);
         }
 
+        // ================== CRUD ==================
 
         public IActionResult Create() => View();
 

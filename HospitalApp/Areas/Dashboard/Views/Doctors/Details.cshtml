@@ -3,17 +3,98 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Chi tiết bác sĩ";
 }
-<h2>@ViewData["Title"]</h2>
-<dl class="row">
-    <dt class="col-sm-2">Họ tên</dt>
-    <dd class="col-sm-10">@Model.FullName</dd>
-    <dt class="col-sm-2">Điện thoại</dt>
-    <dd class="col-sm-10">@Model.PhoneNumber</dd>
-    <dt class="col-sm-2">Chức danh</dt>
-    <dd class="col-sm-10">@Model.Position?.Name</dd>
-    <dt class="col-sm-2">Chuyên môn</dt>
-    <dd class="col-sm-10">@Model.Expertise?.Name</dd>
-</dl>
-<a class="btn btn-secondary" asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">Quay lại</a>
-<a class="btn btn-warning" asp-area="Dashboard" asp-controller="Doctors" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
-<a class="btn btn-danger" asp-area="Dashboard" asp-controller="Doctors" asp-action="Delete" asp-route-id="@Model.Id">Xoá</a>
+<div class="card shadow-sm border-0 mt-2">
+
+    <!-- Header -->
+    <div class="card-header bg-white pt-4 pb-3 px-4 border-0">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-user-md text-primary me-2"></i>
+            Thông tin bác sĩ
+        </h3>
+        <p class="text-muted mt-1 mb-0">Xem chi tiết hồ sơ bác sĩ trong hệ thống</p>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body px-4 pb-4">
+
+        <div class="row g-4">
+
+            <!-- LEFT: Avatar -->
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-light d-flex justify-content-center align-items-center mx-auto mb-3"
+                     style="width: 120px; height: 120px; font-size: 42px;">
+                    <i class="fas fa-user-md text-primary"></i>
+                </div>
+
+                <h5 class="fw-bold">@Model.FullName</h5>
+
+                <div>
+                    @if (Model.Position != null)
+                    {
+                        <span class="badge bg-info text-dark mb-1">@Model.Position.Name</span>
+                    }
+                    <br />
+                    @if (Model.Expertise != null)
+                    {
+                        <span class="badge bg-success mb-1">@Model.Expertise.Name</span>
+                    }
+                </div>
+            </div>
+
+            <!-- RIGHT: Info -->
+            <div class="col-md-9">
+
+                <dl class="row mb-0">
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        <i class="fas fa-id-card me-1"></i> Họ tên
+                    </dt>
+                    <dd class="col-sm-9">@Model.FullName</dd>
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        <i class="fas fa-phone me-1"></i> Điện thoại
+                    </dt>
+                    <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        <i class="fas fa-briefcase-medical me-1"></i> Chức danh
+                    </dt>
+                    <dd class="col-sm-9">@Model.Position?.Name ?? "—"</dd>
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        <i class="fas fa-stethoscope me-1"></i> Chuyên môn
+                    </dt>
+                    <dd class="col-sm-9">@Model.Expertise?.Name ?? "—"</dd>
+
+                </dl>
+            </div>
+        </div>
+
+        <hr class="mt-4" />
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-between mt-3">
+
+            <a class="btn btn-light border"
+               asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+
+            <div class="d-flex gap-2">
+
+                <a class="btn btn-warning px-3"
+                   asp-area="Dashboard" asp-controller="Doctors" asp-action="Edit" asp-route-id="@Model.Id">
+                    <i class="fas fa-edit me-1"></i> Sửa
+                </a>
+
+                <a class="btn btn-danger px-3"
+                   asp-area="Dashboard" asp-controller="Doctors" asp-action="Delete" asp-route-id="@Model.Id">
+                    <i class="fas fa-trash-alt me-1"></i> Xoá
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>

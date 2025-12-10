@@ -1,0 +1,38 @@
+﻿@model IEnumerable<HospitalApp.Models.Prescription>
+
+@{
+    ViewData["Title"] = "Đơn thuốc của tôi";
+}
+
+<h2 class="mb-3">Danh sách đơn thuốc</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">Bạn chưa có đơn thuốc nào.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Mã đơn</th>
+                <th>Ngày kê</th>
+                <th>Số lượng thuốc</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.Id</td>
+                    <td>@p.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@p.Medicines.Count()</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-primary btn-sm">Xem chi tiết</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

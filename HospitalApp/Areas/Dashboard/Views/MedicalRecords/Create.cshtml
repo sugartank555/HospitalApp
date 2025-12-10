@@ -1,48 +1,113 @@
 ﻿@model HospitalApp.Models.MedicalRecord
+@using HospitalApp.Models.Enums
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Thêm hồ sơ khám";
 }
-<h2>@ViewData["Title"]</h2>
-<form method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Time" class="form-label"></label>
-        <input asp-for="Time" class="form-control" type="datetime-local" />
-        <span asp-validation-for="Time" class="text-danger"></span>
+@functions {
+    List<SelectListItem> PaymentList() => new()
+    {
+        new SelectListItem("Chưa thanh toán", PaymentStatus.Unpaid.ToString()),
+        new SelectListItem("Đã thanh toán", PaymentStatus.Paid.ToString()),
+        new SelectListItem("Hoàn tiền", PaymentStatus.Refunded.ToString())
+    };
+
+    List<SelectListItem> RecordStatusList() => new()
+    {
+        new SelectListItem("Mở", MedicalRecordStatus.Open.ToString()),
+        new SelectListItem("Đang xử lý", MedicalRecordStatus.InProgress.ToString()),
+        new SelectListItem("Đã đóng", MedicalRecordStatus.Closed.ToString())
+    };
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-file-medical text-primary me-2"></i>
+            @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Tạo mới hồ sơ khám cho bệnh nhân</p>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="PatientId" class="form-label">Bệnh nhân</label>
-        <select asp-for="PatientId" class="form-select" asp-items="ViewBag.PatientId">
-            <option value="0">— Chọn —</option>
-        </select>
-        <span asp-validation-for="PatientId" class="text-danger"></span>
-    </div>
+    <form method="post">
+        @Html.AntiForgeryToken()
 
-    <div class="mb-3">
-        <label asp-for="DoctorId" class="form-label">Bác sĩ</label>
-        <select asp-for="DoctorId" class="form-select" asp-items="ViewBag.DoctorId">
-            <option value="0">— Chọn —</option>
-        </select>
-        <span asp-validation-for="DoctorId" class="text-danger"></span>
-    </div>
+        <div class="card-body px-4 pb-4">
 
-    <div class="mb-3">
-        <label asp-for="PaymentStatus" class="form-label"></label>
-        <select asp-for="PaymentStatus" class="form-select" asp-items="ViewBag.PaymentStatus"></select>
-    </div>
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-    <div class="mb-3">
-        <label asp-for="Status" class="form-label">Trạng thái (tuỳ chọn)</label>
-        <input asp-for="Status" class="form-control" />
-    </div>
+            <!-- TIME -->
+            <div class="mb-3">
+                <label asp-for="Time" class="form-label fw-semibold">
+                    <i class="fas fa-clock me-1 text-secondary"></i> Thời gian khám
+                </label>
+                <input asp-for="Time" type="datetime-local" class="form-control form-control-lg" />
+                <span asp-validation-for="Time" class="text-danger"></span>
+            </div>
 
-    <button class="btn btn-primary">Lưu</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+            <!-- PATIENT -->
+            <div class="mb-3">
+                <label asp-for="PatientId" class="form-label fw-semibold">
+                    <i class="fas fa-user-injured me-1 text-secondary"></i> Bệnh nhân
+                </label>
+                <select asp-for="PatientId"
+                        class="form-select form-select-lg"
+                        asp-items="ViewBag.PatientId">
+                    <option value="">— Chọn bệnh nhân —</option>
+                </select>
+                <span asp-validation-for="PatientId" class="text-danger"></span>
+            </div>
+
+            <!-- DOCTOR -->
+            <div class="mb-3">
+                <label asp-for="DoctorId" class="form-label fw-semibold">
+                    <i class="fas fa-user-md me-1 text-secondary"></i> Bác sĩ phụ trách
+                </label>
+                <select asp-for="DoctorId"
+                        class="form-select form-select-lg"
+                        asp-items="ViewBag.DoctorId">
+                    <option value="">— Chọn bác sĩ —</option>
+                </select>
+                <span asp-validation-for="DoctorId" class="text-danger"></span>
+            </div>
+
+            <!-- PAYMENT VIỆT HÓA -->
+            <div class="mb-3">
+                <label asp-for="PaymentStatus" class="form-label fw-semibold">
+                    <i class="fas fa-wallet me-1 text-secondary"></i> Trạng thái thanh toán
+                </label>
+                <select asp-for="PaymentStatus"
+                        class="form-select form-select-lg"
+                        asp-items="PaymentList()">
+                </select>
+            </div>
+
+            <!-- STATUS VIỆT HÓA -->
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label fw-semibold">
+                    <i class="fas fa-clipboard-check me-1 text-secondary"></i> Trạng thái hồ sơ
+                </label>
+                <select asp-for="Status"
+                        class="form-select form-select-lg"
+                        asp-items="RecordStatusList()">
+                </select>
+            </div>
+
+        </div>
+
+        <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-light border">
+                <i class="fas fa-arrow-left me-1"></i> Hủy
+            </a>
+
+            <button class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Lưu hồ sơ khám
+            </button>
+        </div>
+    </form>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

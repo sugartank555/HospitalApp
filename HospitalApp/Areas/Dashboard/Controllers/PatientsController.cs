@@ -1,27 +1,28 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using HospitalApp.Data;
+using HospitalApp.Models;
+using HospitalApp.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using HospitalApp.Data;
-using HospitalApp.Models;
 
 namespace HospitalApp.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
-    [Authorize(Roles = "Admin,Doctor")]
+    [Authorize(Roles = "Admin,Doctor,Receptionist")]
     public class PatientsController : Controller
     {
         private readonly ApplicationDbContext _db;
         public PatientsController(ApplicationDbContext db) => _db = db;
 
-        // GET: /Dashboard/Patients
-        public async Task<IActionResult> Index(string? search)
+        public async Task<IActionResult> Index(string? search, int page = 1, int pageSize = 10)
         {
             var q = _db.Patients
                 .Include(p => p.User)
                 .AsNoTracking()
                 .AsQueryable();
 
+            // ===== SEARCH =====
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var k = search.Trim();
@@ -34,8 +35,32 @@ namespace HospitalApp.Areas.Dashboard.Controllers
                 ViewData["Search"] = k;
             }
 
-            var data = await q.ToListAsync();
-            return View(data);
+            // ===== PAGING =====
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            int totalItems = await q.CountAsync();
+
+            var items = await q
+                .OrderBy(p => p.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var vm = new PatientIndexViewModel
+            {
+                Items = items,
+                Search = search,
+                PagingInfo = new PagingInfo
+                {
+                    PageIndex = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+                }
+            };
+
+            return View(vm);
         }
 
         // GET: /Dashboard/Patients/Details/5

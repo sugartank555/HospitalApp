@@ -1,0 +1,240 @@
+﻿@model HospitalApp.Models.MedicalRecord
+
+@{
+    ViewData["Title"] = "Chi tiết hồ sơ bệnh án";
+
+    // Tổng tiền
+    decimal totalTest = Model.MedicalTests?.Sum(t => t.TotalPrice) ?? 0m;
+
+    decimal totalMedicine = 0m;
+    foreach (var pre in Model.Prescriptions)
+    {
+        foreach (var item in pre.Medicines)
+        {
+            var price = item.Medicine?.Price ?? 0m;
+            totalMedicine += price * item.Quantity;
+        }
+    }
+
+    decimal grandTotal = totalTest + totalMedicine;
+
+    // Việt hóa
+    string StatusText() => Model.Status switch
+    {
+        HospitalApp.Models.Enums.MedicalRecordStatus.Open => "Mới tạo",
+        HospitalApp.Models.Enums.MedicalRecordStatus.InProgress => "Đang khám",
+        HospitalApp.Models.Enums.MedicalRecordStatus.Closed => "Đã hoàn tất",
+        _ => "Không xác định"
+    };
+
+    string PaymentText() => Model.PaymentStatus switch
+    {
+        HospitalApp.Models.Enums.PaymentStatus.Unpaid => "Chưa thanh toán",
+        HospitalApp.Models.Enums.PaymentStatus.Paid => "Đã thanh toán",
+        HospitalApp.Models.Enums.PaymentStatus.Refunded => "Hoàn tiền",
+        _ => "Không rõ"
+    };
+}
+
+<h2 class="mb-3">Chi tiết hồ sơ bệnh án #@Model.Id</h2>
+
+<!-- ===================== THÔNG TIN CHUNG ===================== -->
+<div class="card mb-4">
+    <div class="card-header">Thông tin chung</div>
+    <div class="card-body">
+
+        <dl class="row">
+            <dt class="col-sm-3">Thời gian khám</dt>
+            <dd class="col-sm-9">@Model.Time.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Bệnh nhân</dt>
+            <dd class="col-sm-9">@Model.Patient?.FullName (@Model.PatientId)</dd>
+
+            <dt class="col-sm-3">Bác sĩ</dt>
+            <dd class="col-sm-9">@Model.Doctor?.FullName (@Model.DoctorId)</dd>
+
+            <dt class="col-sm-3">Trạng thái hồ sơ</dt>
+            <dd class="col-sm-9">@StatusText()</dd>
+
+            <dt class="col-sm-3">Thanh toán</dt>
+            <dd class="col-sm-9">@PaymentText()</dd>
+        </dl>
+
+        <hr />
+
+
+        <h3 class="fw-bold">
+            Tổng cộng phải thanh toán:
+            <span class="text-danger">@ViewBag.GrandTotal.ToString("N0") đ</span>
+        </h3>
+    </div>
+</div>
+
+<!-- ===================== THÔNG TIN LÂM SÀNG ===================== -->
+@if (Model.Information != null)
+{
+    <div class="card mb-4">
+        <div class="card-header">Thông tin lâm sàng</div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Huyết áp</dt>
+                <dd class="col-sm-9">@Model.Information.BloodPressure</dd>
+
+                <dt class="col-sm-3">Nhiệt độ</dt>
+                <dd class="col-sm-9">@Model.Information.BodyTemperature</dd>
+
+                <dt class="col-sm-3">Nhịp tim</dt>
+                <dd class="col-sm-9">@Model.Information.HeartBeat</dd>
+
+                <dt class="col-sm-3">Chiều cao</dt>
+                <dd class="col-sm-9">@Model.Information.Height</dd>
+
+                <dt class="col-sm-3">Cân nặng</dt>
+                <dd class="col-sm-9">@Model.Information.Weight</dd>
+
+                <dt class="col-sm-3">Chẩn đoán</dt>
+                <dd class="col-sm-9">@Model.Information.Diagnose</dd>
+
+                <dt class="col-sm-3">Chi tiết</dt>
+                <dd class="col-sm-9">@Model.Information.Detail</dd>
+
+                <dt class="col-sm-3">Hướng xử lý</dt>
+                <dd class="col-sm-9">@Model.Information.Solution</dd>
+            </dl>
+        </div>
+    </div>
+}
+
+<!-- ===================== XÉT NGHIỆM CHI TIẾT ===================== -->
+@if (Model.MedicalTests != null && Model.MedicalTests.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header">Danh sách cận lâm sàng / xét nghiệm</div>
+        <div class="card-body">
+
+            @foreach (var test in Model.MedicalTests)
+            {
+                <h5 class="mb-2">
+                    Xét nghiệm: @test.Name (ID: @test.Id)
+                </h5>
+
+                <p class="text-muted">
+                    Thời gian: @(test.TestTime?.ToString("dd/MM/yyyy HH:mm"))
+                </p>
+
+                @if (test.Services != null && test.Services.Any())
+                {
+                    <table class="table table-bordered table-sm mb-3">
+                        <thead>
+                            <tr>
+                                <th>Dịch vụ</th>
+                                <th>Đơn giá (đ)</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền (đ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sv in test.Services)
+                            {
+                                var price = sv.Service?.Price ?? 0m;
+                                var sub = price * sv.Quantity;
+                                <tr>
+                                    <td>@sv.Service?.Name</td>
+                                    <td>@price.ToString("N0")</td>
+                                    <td>@sv.Quantity</td>
+                                    <td>@sub.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                <p class="fw-bold text-end text-danger mb-4">
+                    Tổng tiền xét nghiệm: @test.TotalPrice.ToString("N0") đ
+                </p>
+            }
+
+            <hr />
+            <h4 class="fw-bold text-primary">
+                Tổng chi phí xét nghiệm: @ViewBag.TotalTest.ToString("N0") đ
+            </h4>
+
+        </div>
+    </div>
+}
+
+<!-- ===================== ĐƠN THUỐC CHI TIẾT ===================== -->
+@if (Model.Prescriptions != null && Model.Prescriptions.Any())
+{
+    <div class="card mb-4">
+        <div class="card-header">Đơn thuốc</div>
+        <div class="card-body">
+
+            @* Ở trên file đã có decimal totalMedicine = 0m; rồi
+               => Ở đây KHÔNG khai báo lại nữa, chỉ dùng thêm biến phụ *@
+
+            @foreach (var pres in Model.Prescriptions)
+            {
+                decimal presTotal = 0m;   // tổng tiền của riêng đơn này
+
+                <h5 class="mb-3">
+                    Đơn thuốc #@pres.Id – ngày @pres.CreatedAt.ToString("dd/MM/yyyy")
+                </h5>
+
+                <table class="table table-bordered table-sm mb-4">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên thuốc</th>
+                            <th>Đơn giá (đ)</th>
+                            <th>Số lượng</th>
+                            <th>Thành tiền</th>
+                            <th>Hướng dẫn</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @{
+                            int idx = 1;
+                        }
+
+                        @foreach (var item in pres.Medicines)
+                        {
+                            var price = item.Medicine?.Price ?? 0m;
+                            var sub = price * item.Quantity;
+
+                            presTotal += sub;   // tổng của đơn này
+                            totalMedicine += sub;   // tổng tất cả đơn (biến ở đầu file)
+
+                            <tr>
+                                <td>@idx</td>
+                                <td>@item.Medicine?.Name</td>
+                                <td>@price.ToString("N0")</td>
+                                <td>@item.Quantity</td>
+                                <td>@sub.ToString("N0")</td>
+                                <td>@item.Note</td>
+                            </tr>
+
+                            idx++;
+                        }
+                    </tbody>
+                </table>
+
+                <p class="fw-bold text-end text-primary">
+                    Tổng tiền đơn thuốc #@pres.Id: @presTotal.ToString("N0") đ
+                </p>
+            }
+
+            <hr />
+
+            <h4 class="fw-bold text-danger">
+                Tổng chi phí thuốc: @ViewBag.TotalMedicine.ToString("N0") đ
+            </h4>
+
+        </div>
+    </div>
+}
+
+
+<!-- ===================== QUAY LẠI ===================== -->
+<a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>

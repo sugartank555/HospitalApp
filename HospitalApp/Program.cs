@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HospitalApp.Data;
-using HospitalApp.Models;          // ApplicationUser
-using HospitalApp.Seed;            // DefaultSeeder
+using HospitalApp.Models;          
+using HospitalApp.Seed;           
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ===== DbContext =====
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
@@ -15,18 +14,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-// ===== Identity + Roles (dùng ApplicationUser) =====
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
-        options.SignIn.RequireConfirmedAccount = false; // bật true nếu dùng xác thực email
+        options.SignIn.RequireConfirmedAccount = false; 
         options.Password.RequiredLength = 6;
+        options.Password.RequiredLength = 6;          
+        options.Password.RequireDigit = false;      
+        options.Password.RequireLowercase = false;   
+        options.Password.RequireUppercase = false;    
+        options.Password.RequireNonAlphanumeric = false; 
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// ===== MVC + Razor Pages (Identity UI cần RazorPages) =====
-// Quan trọng: tắt implicit-required cho reference types không-nullable
 builder.Services.AddControllersWithViews(options =>
 {
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
@@ -35,7 +36,6 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// ===== Pipeline =====
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -51,23 +51,19 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();   // phải trước Authorization
+app.UseAuthentication();   
 app.UseAuthorization();
 
-// ===== Routes =====
-// Area (Dashboard)
 app.MapControllerRoute(
     name: "Areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Mặc định (User)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.MapRazorPages(); // cho Identity Razor Pages (Login/Register, ...)
+app.MapRazorPages();
 
-// ===== Seed Roles + Admin mặc định =====
 using (var scope = app.Services.CreateScope())
 {
     await DefaultSeeder.SeedAsync(scope.ServiceProvider);

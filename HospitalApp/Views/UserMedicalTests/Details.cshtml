@@ -1,0 +1,128 @@
+﻿@model HospitalApp.Models.MedicalTest
+
+<div class="card shadow border-0">
+    <div class="card-header bg-primary text-white py-3">
+        <h4 class="m-0">
+            <i class="fas fa-vials me-2"></i> Chi tiết xét nghiệm
+        </h4>
+    </div>
+
+    <div class="card-body">
+
+        <!-- INFO -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label class="text-muted fw-semibold">Tên xét nghiệm</label>
+                <div class="fs-5 fw-bold">@Model.Name</div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="text-muted fw-semibold">Ngày thực hiện</label>
+                <div class="fs-6">
+                    @Model.TestTime?.ToString("dd/MM/yyyy HH:mm")
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="text-muted fw-semibold">Tổng chi phí</label>
+                <div class="fs-5 text-danger fw-bold">
+                    @Model.TotalPrice.ToString("N0") đ
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="text-muted fw-semibold">Thuộc hồ sơ khám</label>
+                <div class="fs-6">#@Model.MedicalRecordId</div>
+            </div>
+        </div>
+
+        <hr />
+
+        <!-- TABLE SERVICES -->
+        <h5 class="fw-bold mb-3">
+            <i class="fas fa-list-ul text-primary me-2"></i>
+            Dịch vụ bao gồm
+        </h5>
+
+        <div class="table-responsive rounded shadow-sm mb-4">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên dịch vụ</th>
+                        <th style="width:120px">Số lượng</th>
+                        <th style="width:150px">Đơn giá</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Services)
+                    {
+                        <tr>
+                            <td>@item.Service.Name</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.Service.Price.ToString("N0") đ</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- ========================================= -->
+        <!--          ĐƠN THUỐC CHO XÉT NGHIỆM         -->
+        <!-- ========================================= -->
+
+        <h5 class="fw-bold mb-3">
+            <i class="fas fa-pills text-success me-2"></i>
+            Đơn thuốc của xét nghiệm
+        </h5>
+
+        @if (Model.Prescription == null)
+        {
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle me-1"></i>
+                Xét nghiệm này <strong>chưa có đơn thuốc</strong>.
+            </div>
+        }
+        else if (Model.Prescription.Medicines == null || !Model.Prescription.Medicines.Any())
+        {
+            <div class="alert alert-secondary">
+                <i class="fas fa-prescription-bottle-alt me-1"></i>
+                Chưa có thuốc nào trong đơn.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive rounded shadow-sm mb-4">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Thuốc</th>
+                            <th style="width:90px">SL</th>
+                            <th style="width:140px">Đơn giá</th>
+                            <th>Hướng dẫn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Prescription.Medicines)
+                        {
+                            <tr>
+                                <td>@item.Medicine.Name</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.Medicine.Price.ToString("N0") đ</td>
+                                <td>@item.Note</td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="mt-4">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+
+    </div>
+</div>

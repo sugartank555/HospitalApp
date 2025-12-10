@@ -1,16 +1,69 @@
 ﻿@model IEnumerable<HospitalApp.Models.MedicalDepartment>
 @{
-   
     ViewData["Title"] = "Khoa/Phòng ban";
+    string TrimText(string? s, int max = 140)
+        => string.IsNullOrWhiteSpace(s) ? "—" : (s!.Length <= max ? s : s.Substring(0, max) + "…");
 }
-<h2>@ViewData["Title"]</h2>
-<div class="list-group">
-    @foreach (var x in Model)
-    {
-        <div class="list-group-item">
-            <h5 class="mb-1">@x.Name</h5>
-            <p class="mb-1 text-muted">@x.Description</p>
-            <a class="small" asp-controller="Catalog" asp-action="Services" asp-route-departmentId="@x.Id">Xem dịch vụ thuộc khoa này</a>
+
+<section class="rounded-4 p-4 mb-4" style="
+    background: radial-gradient(1000px 500px at 5% 15%, #e9f2ff 0%, transparent 60%),
+                radial-gradient(800px 400px at 95% 85%, #eef7ff 0%, transparent 60%),
+                linear-gradient(135deg, #f8fbff 0%, #f1f5ff 100%);
+    border: 1px solid #eef2ff;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="m-0">@ViewData["Title"]</h2>
+            <div class="text-secondary">Danh mục các khoa/phòng ban đang phục vụ</div>
         </div>
-    }
-</div>
+        <a class="btn btn-primary" asp-controller="Appointments" asp-action="Create">
+            Đặt lịch ngay
+        </a>
+    </div>
+</section>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-light border d-flex align-items-center" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        Hiện chưa có khoa/phòng ban nào để hiển thị.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var x in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-start justify-content-between">
+                            <h5 class="card-title mb-1">@x.Name</h5>
+                            <span class="badge bg-light text-secondary border">#@x.Id</span>
+                        </div>
+
+                        <p class="card-text text-muted mb-3">
+                            @TrimText(x.Description, 160)
+                        </p>
+
+                        <div class="mt-auto d-flex gap-2">
+                           
+
+                            <a class="btn btn-sm btn-outline-secondary"
+                               asp-controller="Catalog"
+                               asp-action="Services"
+                               asp-route-departmentId="@x.Id">
+                                Dịch vụ của khoa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+    <!--:
+         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    -->
+}

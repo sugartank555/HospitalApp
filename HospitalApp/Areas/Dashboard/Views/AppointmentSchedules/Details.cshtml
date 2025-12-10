@@ -1,25 +1,65 @@
 ﻿@model HospitalApp.Models.AppointmentSchedule
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chi tiết lịch khám";
 }
-<h2>Chi tiết lịch hẹn</h2>
 
-<dl class="row">
-    <dt class="col-sm-3">Ngày</dt>
-    <dd class="col-sm-9">@Model.Date.ToString("dd/MM/yyyy")</dd>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-calendar-check text-primary me-2"></i> @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Thông tin chi tiết của lịch khám #@Model.Id</p>
+    </div>
 
-    <dt class="col-sm-3">Khung giờ</dt>
-    <dd class="col-sm-9">@Model.TimeFrame</dd>
+    <div class="card-body px-4 pb-4">
 
-    <dt class="col-sm-3">Bệnh nhân</dt>
-    <dd class="col-sm-9">@Model.Patient?.FullName (@Model.PatientId)</dd>
+        <dl class="row mb-0">
 
-    <dt class="col-sm-3">Bác sĩ</dt>
-    <dd class="col-sm-9">@Model.Doctor?.FullName (@Model.DoctorId)</dd>
+            <dt class="col-sm-4 fw-semibold text-secondary">
+                <i class="fas fa-calendar-day me-1"></i> Ngày khám
+            </dt>
+            <dd class="col-sm-8">@Model.Date.ToString("dd/MM/yyyy")</dd>
 
-    <dt class="col-sm-3">Trạng thái</dt>
-    <dd class="col-sm-9">@Model.Status</dd>
-</dl>
+            <dt class="col-sm-4 fw-semibold text-secondary mt-3">
+                <i class="fas fa-clock me-1"></i> Khung giờ
+            </dt>
+            <dd class="col-sm-8 mt-3">@Model.TimeFrame</dd>
 
-<a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Sửa</a>
-<a class="btn btn-secondary" asp-action="Index">Về danh sách</a>
+            <dt class="col-sm-4 fw-semibold text-secondary mt-3">
+                <i class="fas fa-user-injured me-1"></i> Bệnh nhân
+            </dt>
+            <dd class="col-sm-8 mt-3">
+                @Model.Patient?.FullName (@Model.PatientId)
+            </dd>
+
+            <dt class="col-sm-4 fw-semibold text-secondary mt-3">
+                <i class="fas fa-user-md me-1"></i> Bác sĩ
+            </dt>
+            <dd class="col-sm-8 mt-3">
+                @Model.Doctor?.FullName (@Model.DoctorId)
+            </dd>
+
+            <dt class="col-sm-4 fw-semibold text-secondary mt-3">
+                <i class="fas fa-clipboard-check me-1"></i> Trạng thái
+            </dt>
+            <dd class="col-sm-8 mt-3">
+                <span class="badge bg-primary">@Model.Status</span>
+            </dd>
+
+        </dl>
+
+    </div>
+
+    <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+
+        <a asp-action="Index" class="btn btn-light border">
+            <i class="fas fa-arrow-left me-1"></i> Về danh sách
+        </a>
+
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary px-4">
+            <i class="fas fa-edit me-1"></i> Sửa lịch khám
+        </a>
+
+    </div>
+</div>

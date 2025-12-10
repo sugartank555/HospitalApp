@@ -9,7 +9,7 @@ using HospitalApp.Models.Enums;
 namespace HospitalApp.Areas.Dashboard.Controllers
 {
     [Area("Dashboard")]
-    [Authorize(Roles = "Admin,Doctor")]
+    [Authorize(Roles = "Admin,Doctor,Receptionist")]
     public class AppointmentSchedulesController : Controller
     {
         private readonly ApplicationDbContext _db;

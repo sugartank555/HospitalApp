@@ -3,28 +3,52 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Cập nhật vai trò";
 }
-<h2 class="mb-3">@ViewData["Title"] - @Model.UserName</h2>
 
-<form asp-action="EditRoles" method="post" class="card">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="UserId" />
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0 pt-4 pb-2 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-user-shield text-primary me-2"></i>
+            @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Tài khoản: <strong>@Model.UserName</strong></p>
+    </div>
 
-    <div class="card-body">
-        <div class="row">
-            @for (int i = 0; i < Model.Roles.Count; i++)
-            {
-                <div class="col-md-4 mb-2">
-                    <div class="form-check">
-                        <input class="form-check-input" asp-for="Roles[i].Selected" />
-                        <label class="form-check-label">@Model.Roles[i].Name</label>
-                        <input type="hidden" asp-for="Roles[i].Name" />
+    <form asp-action="EditRoles" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="UserId" />
+
+        <div class="card-body px-4 pb-4">
+
+            <div class="row">
+                @for (int i = 0; i < Model.Roles.Count; i++)
+                {
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input"
+                                   asp-for="Roles[i].Selected" />
+
+                            <label class="form-check-label fw-semibold">
+                                <i class="fas fa-tag text-secondary me-1"></i>
+                                @Model.Roles[i].Name
+                            </label>
+
+                            <input type="hidden" asp-for="Roles[i].Name" />
+                        </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
+
         </div>
-    </div>
-    <div class="card-footer d-flex gap-2">
-        <a asp-action="Index" class="btn btn-secondary">← Quay lại</a>
-        <button class="btn btn-primary"><i class="fas fa-save me-1"></i> Lưu thay đổi</button>
-    </div>
-</form>
+
+        <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-light border">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+
+            <button class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Lưu thay đổi
+            </button>
+        </div>
+
+    </form>
+</div>

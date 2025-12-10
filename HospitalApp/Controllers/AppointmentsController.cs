@@ -19,7 +19,6 @@ namespace HospitalApp.Controllers
             _db = db; _userMgr = userMgr;
         }
 
-        // GET: /Appointments/Create
         public async Task<IActionResult> Create()
         {
             var user = await _userMgr.GetUserAsync(User);
@@ -27,7 +26,14 @@ namespace HospitalApp.Controllers
                 ? await _db.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == user.Id)
                 : null;
 
-            ViewBag.Doctors = await _db.Doctors.AsNoTracking().OrderBy(x => x.FullName).ToListAsync();
+            // ✅ Include thêm Position và Expertise
+            ViewBag.Doctors = await _db.Doctors
+                .Include(d => d.Position)
+                .Include(d => d.Expertise)
+                .AsNoTracking()
+                .OrderBy(x => x.FullName)
+                .ToListAsync();
+
             ViewBag.PatientName = patient?.FullName ?? (user?.UserName ?? user?.Email ?? "");
             return View();
         }

@@ -11,10 +11,38 @@ namespace HospitalApp.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Lấy nhanh 6 bác sĩ & 6 dịch vụ nổi bật (theo Id mới nhất)
-            ViewBag.Doctors = await _db.Doctors.AsNoTracking().OrderByDescending(d => d.Id).Take(6).ToListAsync();
-            ViewBag.Services = await _db.Services.Include(s => s.MedicalDepartment).AsNoTracking()
-                                   .OrderByDescending(s => s.Id).Take(6).ToListAsync();
+            try
+            {
+                // 6 bác sĩ & 6 dịch vụ mới nhất
+                ViewBag.Doctors = await _db.Doctors
+                    .AsNoTracking()
+                    .OrderByDescending(d => d.Id)
+                    .Take(6)
+                    .ToListAsync();
+
+                ViewBag.Services = await _db.Services
+                    .Include(s => s.MedicalDepartment)
+                    .AsNoTracking()
+                    .OrderByDescending(s => s.Id)
+                    .Take(6)
+                    .ToListAsync();
+
+                // ==== Tổng số liệu hiển thị ở hero ====
+                ViewBag.TotalDoctors = await _db.Doctors.AsNoTracking().CountAsync();
+                ViewBag.TotalPatients = await _db.Patients.AsNoTracking().CountAsync();
+                ViewBag.TotalAppts = await _db.AppointmentSchedules.AsNoTracking().CountAsync();
+            }
+            catch (Exception ex)
+            {
+                TempData["HomeError"] = "Không thể tải dữ liệu trang chủ: " + ex.Message;
+                // Phòng rỗng tránh lỗi view
+                ViewBag.Doctors = new List<object>();
+                ViewBag.Services = new List<object>();
+                ViewBag.TotalDoctors = 0;
+                ViewBag.TotalPatients = 0;
+                ViewBag.TotalAppts = 0;
+            }
+
             return View();
         }
     }

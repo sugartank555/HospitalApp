@@ -1,20 +1,82 @@
 ﻿@model IEnumerable<HospitalApp.Models.AppointmentSchedule>
-<h2>Lịch khám của tôi</h2>
-@if (TempData["ok"] != null)
-{
-    <div class="alert alert-success">@TempData["ok"]</div>
-}
-<table class="table">
-    <thead><tr><th>Ngày</th><th>Khung giờ</th><th>Bác sĩ</th><th>Trạng thái</th></tr></thead>
-    <tbody>
-        @foreach (var x in Model)
+
+@using HospitalApp.Models.Enums
+
+@functions {
+    string GetAppointmentStatusText(AppointmentStatus s) =>
+       s switch
+       {
+           AppointmentStatus.Pending => "Chờ xác nhận",
+           AppointmentStatus.Confirmed => "Đã xác nhận",
+           AppointmentStatus.Completed => "Đã khám",
+           AppointmentStatus.Cancelled => "Đã hủy",
+           _ => s.ToString()
+       };
+
+    string GetAppointmentStatusColor(AppointmentStatus s) =>
+        s switch
         {
-            <tr>
-                <td>@x.Date:dd/MM/yyyy</td>
-                <td>@x.TimeFrame</td>
-                <td>@x.Doctor.FullName</td>
-                <td>@x.Status</td>
-            </tr>
-        }
-    </tbody>
-</table>
+            AppointmentStatus.Pending => "secondary",
+            AppointmentStatus.Confirmed => "primary",
+            AppointmentStatus.Completed => "success",
+            AppointmentStatus.Cancelled => "danger",
+            _ => "secondary"
+        };
+}
+
+<div class="container py-3">
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="bi bi-calendar-check me-2"></i> Lịch khám của tôi
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            @if (TempData["ok"] != null)
+            {
+                <div class="alert alert-success">@TempData["ok"]</div>
+            }
+
+            @if (!(Model?.Any() ?? false))
+            {
+                <div class="alert alert-info mb-0">
+                    Bạn chưa có lịch khám nào.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ngày</th>
+                                <th>Khung giờ</th>
+                                <th>Bác sĩ</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var x in Model)
+                            {
+                                <tr>
+                                    <td>@x.Date.ToString("dd/MM/yyyy")</td>
+                                    <td class="fw-semibold">@x.TimeFrame</td>
+                                    <td>@x.Doctor?.FullName</td>
+                                    <td>
+                                        <span class="badge bg-@GetAppointmentStatusColor(x.Status)">
+                                            @GetAppointmentStatusText(x.Status)
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

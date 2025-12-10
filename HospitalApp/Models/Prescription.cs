@@ -36,5 +36,6 @@
         public Medicine Medicine { get; set; } = default!;
         public int PrescriptionId { get; set; }
         public Prescription Prescription { get; set; } = default!;
+        public string? Note { get; set; }
     }
 }

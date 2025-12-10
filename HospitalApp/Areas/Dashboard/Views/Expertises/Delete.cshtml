@@ -1,12 +1,52 @@
 ﻿@model HospitalApp.Models.Expertise
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Xoá chuyên môn";
 }
-<h2>Xoá chuyên môn</h2>
-<p>Bạn chắc chắn muốn xoá: <strong>@Model.Name</strong>?</p>
-<form method="post" asp-action="Delete">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <button class="btn btn-danger">Xoá</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+
+<div class="container-fluid py-4">
+
+    <div class="card shadow-sm border-0">
+
+        <!-- Header -->
+        <div class="card-header bg-danger text-white py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Xác nhận xoá chuyên môn
+            </h4>
+        </div>
+
+        <!-- Body -->
+        <div class="card-body">
+            <p class="fs-5">
+                Bạn có chắc chắn muốn xoá chuyên môn:
+                <strong class="text-danger">@Model.Name</strong>?
+            </p>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-3 col-md-2">ID</dt>
+                <dd class="col-sm-9 col-md-10">@Model.Id</dd>
+
+                <dt class="col-sm-3 col-md-2">Tên</dt>
+                <dd class="col-sm-9 col-md-10 fw-semibold">@Model.Name</dd>
+            </dl>
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer bg-light d-flex justify-content-end gap-2">
+            <form method="post" asp-action="Delete" class="m-0">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <button class="btn btn-danger px-4">
+                    <i class="fas fa-trash-alt me-1"></i> Xoá
+                </button>
+            </form>
+
+            <a class="btn btn-secondary px-4" asp-action="Index">
+                <i class="fas fa-arrow-left me-1"></i> Hủy
+            </a>
+        </div>
+
+    </div>
+
+</div>

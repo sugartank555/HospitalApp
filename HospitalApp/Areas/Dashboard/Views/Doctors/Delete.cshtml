@@ -3,19 +3,85 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Xoá bác sĩ";
 }
-<h2>@ViewData["Title"]</h2>
-<div class="alert alert-warning">Bạn có chắc muốn xoá bác sĩ này?</div>
-<dl class="row">
-    <dt class="col-sm-2">Họ tên</dt>
-    <dd class="col-sm-10">@Model.FullName</dd>
-    <dt class="col-sm-2">Điện thoại</dt>
-    <dd class="col-sm-10">@Model.PhoneNumber</dd>
-    <dt class="col-sm-2">Chức danh</dt>
-    <dd class="col-sm-10">@Model.Position?.Name</dd>
-    <dt class="col-sm-2">Chuyên môn</dt>
-    <dd class="col-sm-10">@Model.Expertise?.Name</dd>
-</dl>
-<form asp-area="Dashboard" asp-controller="Doctors" asp-action="Delete" asp-route-id="@Model.Id" method="post">
-    <button class="btn btn-danger">Xoá</button>
-    <a class="btn btn-secondary" asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">Hủy</a>
-</form>
+
+<div class="card shadow-sm border-0 mt-2">
+
+    <!-- Header -->
+    <div class="card-header bg-white pt-4 pb-3 px-4 border-0">
+        <h3 class="fw-bold text-danger m-0">
+            <i class="fas fa-user-slash me-2"></i>
+            Xoá bác sĩ
+        </h3>
+        <p class="text-muted mt-1 mb-0">Hành động này không thể hoàn tác</p>
+    </div>
+
+    <!-- Body -->
+    <div class="card-body px-4 pb-4">
+
+        <div class="alert alert-warning d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
+            <div>
+                Bạn có chắc chắn muốn xoá bác sĩ
+                <strong>@Model.FullName</strong> khỏi hệ thống?
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 text-center">
+                <div class="rounded-circle bg-light d-flex justify-content-center align-items-center mx-auto mb-3"
+                     style="width: 110px; height: 110px; font-size: 38px;">
+                    <i class="fas fa-user-md text-primary"></i>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <dl class="row mb-0">
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        Họ tên
+                    </dt>
+                    <dd class="col-sm-9">@Model.FullName</dd>
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        Điện thoại
+                    </dt>
+                    <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        Chức danh
+                    </dt>
+                    <dd class="col-sm-9">@Model.Position?.Name ?? "—"</dd>
+
+                    <dt class="col-sm-3 fw-semibold text-secondary">
+                        Chuyên môn
+                    </dt>
+                    <dd class="col-sm-9">@Model.Expertise?.Name ?? "—"</dd>
+
+                </dl>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <form asp-area="Dashboard"
+              asp-controller="Doctors"
+              asp-action="Delete"
+              asp-route-id="@Model.Id"
+              method="post">
+
+            <div class="d-flex justify-content-between">
+
+                <a class="btn btn-light border"
+                   asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">
+                    <i class="fas fa-arrow-left me-1"></i> Hủy
+                </a>
+
+                <button class="btn btn-danger px-4"
+                        onclick="return confirm('Xác nhận xoá bác sĩ này?');">
+                    <i class="fas fa-trash-alt me-1"></i> Xoá
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>

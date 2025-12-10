@@ -3,42 +3,79 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Tạo tài khoản";
 }
-<h2 class="mb-3">@ViewData["Title"]</h2>
 
-<form method="post" class="card">
-    @Html.AntiForgeryToken()
-    <div class="card-body">
-        <div class="mb-3">
-            <label class="form-label">UserName</label>
-            <input asp-for="UserName" class="form-control" />
-            <span asp-validation-for="UserName" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input asp-for="Email" class="form-control" />
-            <span asp-validation-for="Email" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">SĐT</label>
-            <input asp-for="Phone" class="form-control" />
-            <span asp-validation-for="Phone" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Mật khẩu</label>
-            <input asp-for="Password" class="form-control" />
-            <span asp-validation-for="Password" class="text-danger"></span>
-        </div>
-        <div class="mb-2">
-            <label class="form-label">Gán vai trò (nhập tên role, phân cách bởi dấu phẩy)</label>
-            <input name="Roles" class="form-control" placeholder="VD: Admin,Doctor" />
-            <small class="text-muted">Vai trò phải tồn tại trước trong hệ thống.</small>
-        </div>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0 pt-4 pb-2 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-user-plus me-2 text-primary"></i>
+            @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Nhập thông tin tài khoản mới vào bên dưới</p>
     </div>
-    <div class="card-footer d-flex gap-2">
-        <a asp-action="Index" class="btn btn-secondary">← Quay lại</a>
-        <button class="btn btn-primary"><i class="fas fa-save me-1"></i> Tạo</button>
-    </div>
-</form>
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="card-body px-4">
+
+            <!-- USERNAME -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-user me-1 text-secondary"></i> UserName
+                </label>
+                <input asp-for="UserName" class="form-control form-control-lg" placeholder="Tên đăng nhập..." />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-envelope me-1 text-secondary"></i> Email
+                </label>
+                <input asp-for="Email" class="form-control form-control-lg" placeholder="example@gmail.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <!-- PHONE -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-phone-alt me-1 text-secondary"></i> Số điện thoại
+                </label>
+                <input asp-for="Phone" class="form-control form-control-lg" placeholder="09xx xxx xxx" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-lock me-1 text-secondary"></i> Mật khẩu
+                </label>
+                <input asp-for="Password" type="password" class="form-control form-control-lg" placeholder="Mật khẩu đăng nhập" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <!-- ROLES -->
+            <div class="mb-2">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-user-shield me-1 text-secondary"></i> Vai trò
+                </label>
+                <input name="Roles" class="form-control form-control-lg" placeholder="VD: Admin,Doctor" />
+                <small class="text-muted">Nhập các role phân cách bởi dấu phẩy (role phải tồn tại trước).</small>
+            </div>
+
+        </div>
+
+        <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-light border">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+
+            <button class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Tạo tài khoản
+            </button>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -1,45 +1,155 @@
 ﻿@model HospitalApp.Models.MedicalRecord
+@using HospitalApp.Models.Enums
 @{
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Sửa hồ sơ khám";
 }
-<h2>@ViewData["Title"]</h2>
-<form method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Time" class="form-label"></label>
-        <input asp-for="Time" class="form-control" type="datetime-local" />
-        <span asp-validation-for="Time" class="text-danger"></span>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-file-medical-alt text-primary me-2"></i>
+            @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Chỉnh sửa thông tin hồ sơ khám #@Model.Id</p>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="PatientId" class="form-label">Bệnh nhân</label>
-        <select asp-for="PatientId" class="form-select" asp-items="ViewBag.PatientId"></select>
-        <span asp-validation-for="PatientId" class="text-danger"></span>
-    </div>
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
 
-    <div class="mb-3">
-        <label asp-for="DoctorId" class="form-label">Bác sĩ</label>
-        <select asp-for="DoctorId" class="form-select" asp-items="ViewBag.DoctorId"></select>
-        <span asp-validation-for="DoctorId" class="text-danger"></span>
-    </div>
+        <div class="card-body px-4 pb-4">
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-    <div class="mb-3">
-        <label asp-for="PaymentStatus" class="form-label"></label>
-        <select asp-for="PaymentStatus" class="form-select" asp-items="ViewBag.PaymentStatus"></select>
-    </div>
+            <!-- ======================== -->
+            <!-- THÔNG TIN CHUNG          -->
+            <!-- ======================== -->
+            <h5 class="fw-bold text-primary mb-3">Thông tin chung</h5>
 
-    <div class="mb-3">
-        <label asp-for="Status" class="form-label"></label>
-        <input asp-for="Status" class="form-control" />
-    </div>
+            <!-- Time -->
+            <div class="mb-3">
+                <label asp-for="Time" class="form-label fw-semibold">Thời gian khám</label>
+                <input asp-for="Time" type="datetime-local" class="form-control form-control-lg" />
+            </div>
 
-    <button class="btn btn-primary">Lưu</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+            <!-- Patient -->
+            <div class="mb-3">
+                <label asp-for="PatientId" class="form-label fw-semibold">Bệnh nhân</label>
+                <select asp-for="PatientId" class="form-select form-select-lg" asp-items="ViewBag.PatientId"></select>
+            </div>
+
+            <!-- Doctor -->
+            <div class="mb-3">
+                <label asp-for="DoctorId" class="form-label fw-semibold">Bác sĩ phụ trách</label>
+                <select asp-for="DoctorId" class="form-select form-select-lg" asp-items="ViewBag.DoctorId"></select>
+            </div>
+
+            <!-- Payment Status -->
+            <div class="mb-3">
+                <label asp-for="PaymentStatus" class="form-label fw-semibold">Thanh toán</label>
+                <select asp-for="PaymentStatus" class="form-select form-select-lg">
+                    @foreach (PaymentStatus s in Enum.GetValues(typeof(PaymentStatus)))
+                    {
+                        var text = s switch
+                        {
+                            PaymentStatus.Unpaid => "Chưa thanh toán",
+                            PaymentStatus.Paid => "Đã thanh toán",
+                            PaymentStatus.Refunded => "Đã hoàn tiền",
+                            _ => s.ToString()
+                        };
+
+                        <option value="@((int)s)" selected="@(Model.PaymentStatus == s)">
+                            @text
+                        </option>
+                    }
+                </select>
+
+            </div>
+
+            <!-- MedicalRecord Status -->
+            <div class="mb-4">
+                <label asp-for="Status" class="form-label fw-semibold">Tình trạng hồ sơ</label>
+                <select asp-for="Status" class="form-select form-select-lg">
+                    @foreach (MedicalRecordStatus s in Enum.GetValues(typeof(MedicalRecordStatus)))
+                    {
+                        var text = s switch
+                        {
+                            MedicalRecordStatus.Open => "Mở",
+                            MedicalRecordStatus.InProgress => "Đang xử lý",
+                            MedicalRecordStatus.Closed => "Đã đóng",
+                            _ => s.ToString()
+                        };
+
+                        <option value="@((int)s)" selected="@(Model.Status == s)">
+                            @text
+                        </option>
+                    }
+                </select>
+
+            </div>
+
+
+            <hr class="my-4" />
+
+            <!-- ======================== -->
+            <!--  THÔNG TIN KHÁM BỆNH     -->
+            <!-- ======================== -->
+
+            <h5 class="fw-bold text-primary mb-3">Thông tin khám lâm sàng</h5>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Huyết áp</label>
+                    <input asp-for="Information.BloodPressure" class="form-control" placeholder="mmHg" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nhiệt độ (°C)</label>
+                    <input asp-for="Information.BodyTemperature" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nhịp tim (bpm)</label>
+                    <input asp-for="Information.HeartBeat" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Chiều cao (cm)</label>
+                    <input asp-for="Information.Height" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Cân nặng (kg)</label>
+                    <input asp-for="Information.Weight" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Triệu chứng / mô tả</label>
+                <textarea asp-for="Information.Detail" rows="3" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Chẩn đoán</label>
+                <textarea asp-for="Information.Diagnose" rows="2" class="form-control"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Phương án điều trị / lời dặn</label>
+                <textarea asp-for="Information.Solution" rows="2" class="form-control"></textarea>
+            </div>
+        </div>
+
+        <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-light border">
+                <i class="fas fa-arrow-left me-1"></i> Hủy
+            </a>
+            <button class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Lưu hồ sơ
+            </button>
+        </div>
+    </form>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

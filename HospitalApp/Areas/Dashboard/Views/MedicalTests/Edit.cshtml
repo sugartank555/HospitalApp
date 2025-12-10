@@ -3,39 +3,85 @@
     Layout = "~/Areas/Dashboard/Views/Shared/_DashboardLayout.cshtml";
     ViewData["Title"] = "Sửa xét nghiệm";
 }
-<h2>@ViewData["Title"]</h2>
-<form method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="Id" />
-    <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+<div class="card shadow-sm border-0">
+
+    <!-- Header -->
+    <div class="card-header bg-white border-0 pt-4 px-4">
+        <h3 class="fw-bold m-0">
+            <i class="fas fa-vial text-primary me-2"></i> @ViewData["Title"]
+        </h3>
+        <p class="text-muted mt-1">Chỉnh sửa thông tin xét nghiệm #@Model.Id</p>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="TestTime" class="form-label"></label>
-        <input asp-for="TestTime" class="form-control" type="datetime-local" />
-        <span asp-validation-for="TestTime" class="text-danger"></span>
-    </div>
+    <!-- Form -->
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
 
-    <div class="mb-3">
-        <label asp-for="TotalPrice" class="form-label"></label>
-        <input asp-for="TotalPrice" class="form-control" step="0.01" />
-        <span asp-validation-for="TotalPrice" class="text-danger"></span>
-    </div>
+        <div class="card-body px-4 pb-4">
 
-    <div class="mb-3">
-        <label asp-for="MedicalRecordId" class="form-label">Hồ sơ</label>
-        <select asp-for="MedicalRecordId" class="form-select" asp-items="ViewBag.MedicalRecordId"></select>
-        <span asp-validation-for="MedicalRecordId" class="text-danger"></span>
-    </div>
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-    <button class="btn btn-primary">Lưu</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+            <!-- NAME -->
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label fw-semibold">
+                    <i class="fas fa-microscope me-1 text-secondary"></i> Tên xét nghiệm
+                </label>
+                <input asp-for="Name" class="form-control form-control-lg" placeholder="VD: Xét nghiệm máu, Covid-PCR..." />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <!-- TEST TIME -->
+            <div class="mb-3">
+                <label asp-for="TestTime" class="form-label fw-semibold">
+                    <i class="fas fa-clock me-1 text-secondary"></i> Thời gian xét nghiệm
+                </label>
+                <input asp-for="TestTime" type="datetime-local" class="form-control form-control-lg" />
+                <span asp-validation-for="TestTime" class="text-danger"></span>
+            </div>
+
+            <!-- PRICE -->
+            <div class="mb-3">
+                <label asp-for="TotalPrice" class="form-label fw-semibold">
+                    <i class="fas fa-money-bill-wave me-1 text-secondary"></i> Tổng tiền
+                </label>
+                <input asp-for="TotalPrice"
+                       class="form-control form-control-lg"
+                       step="0.01"
+                       placeholder="Nhập số tiền" />
+                <span asp-validation-for="TotalPrice" class="text-danger"></span>
+            </div>
+
+            <!-- MEDICAL RECORD -->
+            <div class="mb-3">
+                <label asp-for="MedicalRecordId" class="form-label fw-semibold">
+                    <i class="fas fa-file-medical me-1 text-secondary"></i> Thuộc hồ sơ khám
+                </label>
+                <select asp-for="MedicalRecordId"
+                        class="form-select form-select-lg"
+                        asp-items="ViewBag.MedicalRecordId">
+                </select>
+                <span asp-validation-for="MedicalRecordId" class="text-danger"></span>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer bg-white border-0 px-4 pb-4 pt-2 d-flex justify-content-between">
+
+            <a asp-action="Index" class="btn btn-light border">
+                <i class="fas fa-arrow-left me-1"></i> Hủy
+            </a>
+
+            <button class="btn btn-primary px-4">
+                <i class="fas fa-save me-1"></i> Lưu thay đổi
+            </button>
+
+        </div>
+    </form>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }

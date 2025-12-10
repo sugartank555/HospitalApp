@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="keywords" content="medical, clinic, hospital, booking" />
-    <meta name="description" content="Mediplus - Medical & Doctor Directory" />
+    <meta name="keywords" content="y tế, phòng khám, bệnh viện, đặt lịch" />
+    <meta name="description" content="Mediplus - Danh bạ Bác sĩ & Y tế" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
     <title>@ViewData["Title"] - Mediplus</title>
@@ -44,121 +44,99 @@
         </div>
     </div>
     <!-- Header -->
-    <header class="header">
-        <!-- Topbar -->
-        <div class="topbar py-2 border-bottom">
+    <header class="header shadow-sm">
+
+        <!-- TOPBAR -->
+        <div class="topbar py-2 border-bottom bg-light">
             <div class="container">
                 <div class="row align-items-center">
 
-                    <!-- Left -->
+                    <!-- LEFT: Quick Catalog -->
                     <div class="col-lg-6 col-md-6 col-12">
-                        <ul class="nav gap-3 small mb-0">
-                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Home" asp-action="About">About</a></li>
-                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
-                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Catalog" asp-action="Services">Services</a></li>
-                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Catalog" asp-action="Departments">Departments</a></li>
-                            <li class="nav-item"><a class="nav-link px-0" asp-controller="Home" asp-action="Faq">FAQ</a></li>
+                        <ul class="nav small gap-3 mb-0">
+
+                            <li class="nav-item">
+                               
+                            </li>
+
+                            <li class="nav-item">
+                               
+                            </li>
+
+                            <li class="nav-item">
+                               
+                            </li>
+
+                            <li class="nav-item">
+                               
+                            </li>
+
                         </ul>
                     </div>
 
-                    <!-- Right -->
+                    <!-- RIGHT -->
                     <div class="col-lg-6 col-md-6 col-12">
                         <div class="d-flex justify-content-lg-end align-items-center flex-wrap gap-3">
 
-                            <!-- Phone -->
-                            <ul class="nav small mb-0">
-                                <li class="nav-item">
-                                    <a class="border border-secondary rounded px-3 py-1 text-body text-decoration-none"
-                                       asp-controller="Profile" asp-action="Edit">
-                                        Hồ sơ
-                                    </a>
-                                </li>
-                            </ul>
+                            <!-- Profile -->
+                            <a class="btn btn-outline-secondary btn-sm px-3"
+                               asp-controller="Profile" asp-action="Edit">
+                                <i class="fas fa-user-circle me-1"></i> Hồ sơ
+                            </a>
 
-
-                            <!-- Auth (Identity _LoginPartial thường render <ul class="navbar-nav">) -->
+                          
+                            <!-- Auth Partial -->
                             <div class="auth-nav">
                                 <partial name="_LoginPartial" />
                             </div>
 
-                            <!-- Quick links (role-based) -->
-                            <ul class="nav small mb-0">
-                                @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link px-0" asp-area="Dashboard" asp-controller="Home" asp-action="Index">Dashboard</a>
-                                    </li>
-                                }
-                                
-                            </ul>
-
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Header Inner -->
-        <div class="header-inner">
-            <div class="container">
-                <div class="inner">
-                    <div class="row align-items-center">
-                        <!-- Logo -->
-                        <div class="col-lg-3 col-md-3 col-12">
-                            <div class="logo">
-                                <a asp-area="" asp-controller="Home" asp-action="Index">
-                                    <img src="~/img/logo.png" alt="Logo" asp-append-version="true" />
+                            <!-- Dashboard -->
+                            @if (User.IsInRole("Admin") || User.IsInRole("Doctor") || User.IsInRole("Receptionist"))
+                            {
+                                <a class="nav-link px-0 text-dark"
+                                   asp-area="Dashboard" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-tools me-1"></i> Dashboard
                                 </a>
-                            </div>
-                            <div class="mobile-nav"></div>
+                            }
+
                         </div>
-
-                        <!-- Main Menu -->
-                        @{
-                            var signedIn = User?.Identity?.IsAuthenticated ?? false;
-                        }
-                        <div class="col-lg-7 col-md-9 col-12">
-                            <div class="main-menu">
-                                <nav class="navigation">
-                                    <ul class="nav menu d-flex align-items-center gap-3 list-unstyled mb-0">
-                                        <li class="active">
-                                            <a asp-controller="Home" asp-action="Index">Home</a>
-                                        </li>
-                                        <li><a asp-controller="Catalog" asp-action="Departments">Departments</a></li>
-                                        <li><a asp-controller="Catalog" asp-action="Services">Services</a></li>
-                                        <li><a asp-controller="Catalog" asp-action="Doctors">Doctors</a></li>
-
-                                        @if (signedIn)
-                                        {
-                                            <!-- Đẩy sang phải khi đã đăng nhập -->
-                                            <li class="ms-lg-auto nav-item">
-                                                <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Create">Đặt lịch</a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link text-dark" asp-controller="Appointments" asp-action="My">Lịch của tôi</a>
-                                            </li>
-                                        }
-                                        else
-                                        {
-                                            <!-- Khi chưa đăng nhập: hiện nút Đăng nhập ở vị trí đẩy phải -->
-                                            <li class="ms-lg-auto nav-item">
-                                                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Đăng nhập</a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-
-
-                        <!-- Slot trống (search/button) -->
-                        <div class="col-lg-2 col-12"></div>
                     </div>
+
                 </div>
             </div>
         </div>
+
+
+        <!-- MAIN NAVIGATION -->
+        <!-- MAIN NAVIGATION -->
+        <div class="main-menu-wrapper py-2 bg-white">
+            <div class="container">
+                <nav class="d-flex align-items-center justify-content-between">
+
+                    <!-- CENTER MENU -->
+                    <ul class="nav menu gap-4 list-unstyled mb-0 fw-semibold">
+
+                        <li><a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li><a class="nav-link text-dark" asp-controller="Catalog" asp-action="Departments">Khoa</a></li>
+                        <li><a class="nav-link text-dark" asp-controller="Catalog" asp-action="Services">Dịch vụ</a></li>
+                        <li><a class="nav-link text-dark" asp-controller="Catalog" asp-action="Doctors">Bác sĩ</a></li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li><a class="nav-link text-dark" asp-controller="Appointments" asp-action="Create">Đặt lịch</a></li>
+                            <li><a class="nav-link text-dark" asp-controller="Appointments" asp-action="My">Lịch hẹn</a></li>
+                            <li><a class="nav-link text-dark" asp-controller="MedicalRecords" asp-action="Index">Hồ sơ khám</a></li>
+                            <li><a class="nav-link text-dark" asp-controller="UserMedicalTests" asp-action="Index">Xét nghiệm</a></li>
+                            <li><a class="nav-link text-dark" asp-controller="UserPrescriptions" asp-action="Index">Đơn thuốc</a></li>
+                        }
+                    </ul>
+
+                </nav>
+            </div>
+        </div>
+
     </header>
+
 
     <main role="main">
         @RenderBody()
@@ -172,8 +150,8 @@
                     <!-- About -->
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="single-footer">
-                            <h2>About Us</h2>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit do eiusmod tempor incididunt ut labore dolore magna.</p>
+                            <h2>Về chúng tôi</h2>
+                            <p>Chúng tôi cung cấp dịch vụ y tế chất lượng, tận tâm và chuyên nghiệp cho cộng đồng.</p>
                             <ul class="social">
                                 <li><a href="#"><i class="icofont-facebook"></i></a></li>
                                 <li><a href="#"><i class="icofont-google-plus"></i></a></li>
@@ -186,24 +164,22 @@
                     <!-- Quick Links -->
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="single-footer f-link">
-                            <h2>Quick Links</h2>
+                            <h2>Liên kết nhanh</h2>
                             <div class="row">
                                 <div class="col-lg-6 col-md-6 col-12">
                                     <ul>
-                                        <li><a asp-controller="Home" asp-action="Index"><i class="fa fa-caret-right"></i>Home</a></li>
-                                        <li><a asp-controller="Home" asp-action="About"><i class="fa fa-caret-right"></i>About Us</a></li>
-                                        <li><a asp-controller="Catalog" asp-action="Services"><i class="fa fa-caret-right"></i>Services</a></li>
-                                        <li><a asp-controller="Catalog" asp-action="Departments"><i class="fa fa-caret-right"></i>Departments</a></li>
-                                        <li><a asp-controller="Catalog" asp-action="Doctors"><i class="fa fa-caret-right"></i>Doctors</a></li>
+                                        <li><a asp-controller="Home" asp-action="Index"><i class="fa fa-caret-right"></i>Trang chủ</a></li>
+                                        <li><a asp-controller="Home" asp-action="About"><i class="fa fa-caret-right"></i>Giới thiệu</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Services"><i class="fa fa-caret-right"></i>Dịch vụ</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Departments"><i class="fa fa-caret-right"></i>Khoa phòng</a></li>
+                                        <li><a asp-controller="Catalog" asp-action="Doctors"><i class="fa fa-caret-right"></i>Bác sĩ</a></li>
                                     </ul>
                                 </div>
                                 <div class="col-lg-6 col-md-6 col-12">
                                     <ul>
-                                        <li><a asp-controller="Booking" asp-action="Create"><i class="fa fa-caret-right"></i>Book Now</a></li>
-                                        <li><a asp-controller="Booking" asp-action="MyAppointments"><i class="fa fa-caret-right"></i>My Appointments</a></li>
-                                      
-                                        <li><a asp-controller="Contact" asp-action="Index"><i class="fa fa-caret-right"></i>Contact Us</a></li>
-                                        @* <li><a href="#"><i class="fa fa-caret-right"></i>Other Links</a></li> *@
+                                        <li><a asp-controller="Booking" asp-action="Create"><i class="fa fa-caret-right"></i>Đặt lịch ngay</a></li>
+                                        <li><a asp-controller="Booking" asp-action="MyAppointments"><i class="fa fa-caret-right"></i>Lịch hẹn của tôi</a></li>
+                                        <li><a asp-controller="Contact" asp-action="Index"><i class="fa fa-caret-right"></i>Liên hệ</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -212,22 +188,21 @@
                     <!-- Open Hours -->
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="single-footer">
-                            <h2>Open Hours</h2>
-                            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit do eiusmod tempor incididunt.</p>
+                            <h2>Giờ làm việc</h2>
                             <ul class="time-sidual">
-                                <li class="day">Monday - Friday <span>8.00-20.00</span></li>
-                                <li class="day">Saturday <span>9.00-18.30</span></li>
-                                <li class="day">Sunday <span>9.00-15.00</span></li>
+                                <li class="day">Thứ 2 - Thứ 6 <span>8:00 - 20:00</span></li>
+                                <li class="day">Thứ 7 <span>9:00 - 18:30</span></li>
+                                <li class="day">Chủ nhật <span>9:00 - 15:00</span></li>
                             </ul>
                         </div>
                     </div>
                     <!-- Newsletter -->
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="single-footer">
-                            <h2>Newsletter</h2>
-                            <p>Subscribe to get our latest updates via email.</p>
+                            <h2>Bản tin</h2>
+                            <p>Đăng ký để nhận thông tin mới nhất qua email.</p>
                             <form action="#" method="post" class="newsletter-inner">
-                                <input name="email" placeholder="Email Address" class="common-input" onfocus="this.placeholder=''" onblur="this.placeholder='Email Address'" required type="email" />
+                                <input name="email" placeholder="Địa chỉ email" class="common-input" onfocus="this.placeholder=''" onblur="this.placeholder='Địa chỉ email'" required type="email" />
                                 <button class="button" type="submit"><i class="icofont icofont-paper-plane"></i></button>
                             </form>
                         </div>
@@ -241,7 +216,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="copyright-content">
-                            <p>© @DateTime.Now.Year | All Rights Reserved by <a href="https://www.wpthemesgrid.com" target="_blank" rel="noopener">wpthemesgrid.com</a></p>
+                            <p>© @DateTime.Now.Year  </p>
                         </div>
                     </div>
                 </div>

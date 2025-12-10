@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using HospitalApp.Data;
 using HospitalApp.Models;
+using HospitalApp.ViewModels;
 
 namespace HospitalApp.Areas.Dashboard.Controllers
 {
@@ -13,8 +14,7 @@ namespace HospitalApp.Areas.Dashboard.Controllers
     {
         private readonly ApplicationDbContext _db;
         public ServicesController(ApplicationDbContext db) => _db = db;
-
-        public async Task<IActionResult> Index(string? search, string? sortOrder)
+        public async Task<IActionResult> Index(string? search, string? sortOrder, int page = 1, int pageSize = 10)
         {
             var q = _db.Services
                 .Include(s => s.MedicalDepartment)
@@ -56,10 +56,33 @@ namespace HospitalApp.Areas.Dashboard.Controllers
                 _ => q.OrderBy(s => s.Name) // mặc định: theo tên
             };
 
-            var data = await q.ToListAsync();
-            return View(data);
-        }
+            // ====== PAGING ======
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 10;
 
+            var totalItems = await q.CountAsync();
+
+            var items = await q
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var vm = new ServiceIndexViewModel
+            {
+                Items = items,
+                PagingInfo = new PagingInfo
+                {
+                    PageIndex = page,
+                    PageSize = pageSize,
+                    TotalItems = totalItems,
+                    TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize)
+                },
+                Search = search,
+                SortOrder = sortOrder
+            };
+
+            return View(vm);
+        }
 
         public IActionResult Create() { LoadDeps(); return View(); }
 

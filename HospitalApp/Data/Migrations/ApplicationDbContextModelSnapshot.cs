@@ -93,7 +93,7 @@ namespace HospitalApp.Data.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("HospitalApp.Models.AppointmentSchedule", b =>
@@ -265,6 +265,9 @@ namespace HospitalApp.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("PrescriptionId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("TestTime")
                         .HasColumnType("datetime2");
 
@@ -274,6 +277,8 @@ namespace HospitalApp.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MedicalRecordId");
+
+                    b.HasIndex("PrescriptionId");
 
                     b.ToTable("MedicalTests");
                 });
@@ -332,6 +337,9 @@ namespace HospitalApp.Data.Migrations
 
                     b.Property<int>("MedicineId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PrescriptionId")
                         .HasColumnType("int");
@@ -542,7 +550,7 @@ namespace HospitalApp.Data.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -567,7 +575,7 @@ namespace HospitalApp.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("RoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -592,7 +600,7 @@ namespace HospitalApp.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("UserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -616,7 +624,7 @@ namespace HospitalApp.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("UserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -631,7 +639,7 @@ namespace HospitalApp.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("UserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -652,7 +660,7 @@ namespace HospitalApp.Data.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("UserTokens", (string)null);
                 });
 
             modelBuilder.Entity("HospitalApp.Models.Doctor", b =>
@@ -734,7 +742,13 @@ namespace HospitalApp.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("HospitalApp.Models.Prescription", "Prescription")
+                        .WithMany()
+                        .HasForeignKey("PrescriptionId");
+
                     b.Navigation("MedicalRecord");
+
+                    b.Navigation("Prescription");
                 });
 
             modelBuilder.Entity("HospitalApp.Models.MedicineOfPrescription", b =>

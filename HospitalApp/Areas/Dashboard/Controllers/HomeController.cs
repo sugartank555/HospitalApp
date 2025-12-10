@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [Area("Dashboard")]
-[Authorize(Roles = "Admin,Doctor")]
+[Authorize(Roles = "Admin,Doctor,Receptionist")]
 public class HomeController : Controller
 {
     private readonly ApplicationDbContext _db;

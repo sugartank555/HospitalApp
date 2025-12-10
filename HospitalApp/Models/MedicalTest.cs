@@ -9,6 +9,8 @@
 
         public int MedicalRecordId { get; set; }
         public MedicalRecord MedicalRecord { get; set; } = default!;
+        public int? PrescriptionId { get; set; }
+        public Prescription? Prescription { get; set; }
         public ICollection<ServiceOfMedicalTest> Services { get; set; } = new List<ServiceOfMedicalTest>();
     }
 

@@ -22,11 +22,20 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         }
 
         // GET: /Dashboard/Users
-        public async Task<IActionResult> Index(string? search, string? role, string? sortOrder)
+        // GET: /Dashboard/Users
+        public async Task<IActionResult> Index(
+            string? search,
+            string? role,
+            string? sortOrder,
+            int page = 1,
+            int pageSize = 10)
         {
+            if (page < 1) page = 1;
+            if (pageSize <= 0) pageSize = 10;
+
             var users = _userManager.Users.AsNoTracking().AsQueryable();
 
-            // Search by username/email/phone
+            // --- Search ---
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var k = search.Trim();
@@ -34,25 +43,23 @@ namespace HospitalApp.Areas.Dashboard.Controllers
                     (u.UserName != null && u.UserName.Contains(k)) ||
                     (u.Email != null && u.Email.Contains(k)) ||
                     (u.PhoneNumber != null && u.PhoneNumber.Contains(k)));
-                ViewData["Search"] = k;
             }
 
-            // Filter by role
+            // --- Filter by role ---
             if (!string.IsNullOrWhiteSpace(role))
             {
-                // lấy Id các user thuộc role
                 var inRole = await _userManager.GetUsersInRoleAsync(role);
                 var ids = inRole.Select(u => u.Id).ToHashSet();
                 users = users.Where(u => ids.Contains(u.Id));
-                ViewData["RoleFilter"] = role;
             }
 
-            // Sort toggles
+            // --- Sort toggles for view ---
             ViewData["CurrentSort"] = sortOrder;
             ViewData["NameSort"] = sortOrder == "name" ? "name_desc" : "name";
             ViewData["EmailSort"] = sortOrder == "email" ? "email_desc" : "email";
             ViewData["DateSort"] = sortOrder == "date" ? "date_desc" : "date";
 
+            // --- Apply sort ---
             users = sortOrder switch
             {
                 "name" => users.OrderBy(u => u.UserName!),
@@ -64,28 +71,49 @@ namespace HospitalApp.Areas.Dashboard.Controllers
                 _ => users.OrderBy(u => u.UserName!)
             };
 
-            var list = await users.ToListAsync();
+            // --- Pagination (đếm trước khi Skip/Take) ---
+            var totalItems = await users.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page > totalPages) page = totalPages;
 
-            // nạp roles cho từng user
-            var result = new List<UserRowVm>();
-            foreach (var u in list)
+            var pageUsers = await users
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // --- Nạp roles chỉ cho trang hiện tại ---
+            var items = new List<UserRowVm>();
+            foreach (var u in pageUsers)
             {
-                var roles = await _userManager.GetRolesAsync(u);
-                result.Add(new UserRowVm
+                var rolesOfUser = await _userManager.GetRolesAsync(u);
+                items.Add(new UserRowVm
                 {
                     Id = u.Id,
                     UserName = u.UserName,
                     Email = u.Email,
                     Phone = u.PhoneNumber,
                     LockoutEnd = u.LockoutEnd,
-                    Roles = roles.ToList()
+                    Roles = rolesOfUser.ToList()
                 });
             }
 
-            // all roles for filter dropdown
-            ViewBag.AllRoles = _roleManager.Roles.OrderBy(r => r.Name).Select(r => r.Name).ToList();
-            return View(result);
+            var vm = new UsersIndexVm
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Search = search,
+                Role = role,
+                SortOrder = sortOrder ?? string.Empty,
+                AllRoles = await _roleManager.Roles.OrderBy(r => r.Name!).Select(r => r.Name!).ToListAsync()
+            };
+
+            return View(vm);
         }
+
 
         // GET: /Dashboard/Users/EditRoles/{id}
         public async Task<IActionResult> EditRoles(string id)
@@ -267,4 +295,23 @@ namespace HospitalApp.Areas.Dashboard.Controllers
         // nhập role bằng dấu phẩy, hoặc tạo UI checkbox riêng
         public List<string>? Roles { get; set; }
     }
+    public class UsersIndexVm
+    {
+        public List<UserRowVm> Items { get; set; } = new();
+
+        // Paging
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages { get; set; }
+
+        // Filters / Sort
+        public string? Search { get; set; }
+        public string? Role { get; set; }
+        public string SortOrder { get; set; } = string.Empty;
+
+        // For dropdown
+        public List<string> AllRoles { get; set; } = new();
+    }
+
 }

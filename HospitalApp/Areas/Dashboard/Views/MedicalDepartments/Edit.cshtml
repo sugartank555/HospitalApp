@@ -4,36 +4,64 @@
 
     var action = (ViewContext.RouteData.Values["action"]?.ToString() ?? "");
     var isCreate = string.Equals(action, "Create", System.StringComparison.OrdinalIgnoreCase);
-    var isEdit = string.Equals(action, "Edit", System.StringComparison.OrdinalIgnoreCase);
+    var title = isCreate ? "Thêm khoa / phòng ban" : "Sửa khoa / phòng ban";
 }
-<h2>@(isCreate ? "Thêm khoa" : "Sửa khoa")</h2>
 
-<form method="post">
-    @Html.AntiForgeryToken()
+<div class="container-fluid py-3">
 
-    @* Khi Edit thì gửi kèm Id *@
-    @if (isEdit)
-    {
-        <input type="hidden" asp-for="Id" />
-    }
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0 fw-semibold">
+                <i class="fas @(isCreate ? "fa-plus" : "fa-edit") me-2"></i>
+                @title
+            </h4>
+        </div>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="card-body px-4 py-4">
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Khi Edit thì cần Id -->
+                @if (!isCreate)
+                {
+                    <input type="hidden" asp-for="Id" />
+                }
+
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <!-- Name -->
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label fw-semibold"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Nhập tên khoa / phòng ban..." />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-semibold"></label>
+                    <textarea asp-for="Description" class="form-control" rows="4"
+                              placeholder="Nhập mô tả chi tiết về khoa/phòng ban..."></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary px-4">
+                        <i class="fas fa-save me-1"></i> Lưu
+                    </button>
+
+                    <a class="btn btn-secondary px-4" asp-action="Index">
+                        <i class="fas fa-arrow-left me-1"></i> Hủy
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-
-    <button class="btn btn-primary">Lưu</button>
-    <a class="btn btn-secondary" asp-action="Index">Hủy</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

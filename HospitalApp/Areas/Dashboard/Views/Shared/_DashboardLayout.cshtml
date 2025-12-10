@@ -26,32 +26,34 @@
 
         <!-- Sidebar -->
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
             <!-- Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center"
                asp-area="Dashboard" asp-controller="Home" asp-action="Index">
                 <div class="sidebar-brand-icon">
                     <i class="fas fa-hospital"></i>
                 </div>
-                <div class="sidebar-brand-text mx-2">
-                    <span class="font-weight-bold">Quản lý Khám Bệnh</span>
-                    
-                </div>
+                <div class="sidebar-brand-text mx-2">Hospital Admin</div>
             </a>
 
             <hr class="sidebar-divider my-0" />
 
-            <!-- Tổng quan -->
+            <!-- ======================= -->
+            <!-- DASHBOARD (mọi role)   -->
+            <!-- ======================= -->
             <li class="nav-item @active("Home")">
                 <a class="nav-link" asp-area="Dashboard" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Tổng quan</span>
                 </a>
             </li>
-            @* --- Quản trị hệ thống (chỉ dành cho Admin) --- *@
+
+            <!-- ======================= -->
+            <!-- ADMIN ONLY             -->
+            <!-- ======================= -->
             @if (User.IsInRole("Admin"))
             {
                 <hr class="sidebar-divider" />
-
                 <div class="sidebar-heading">Quản trị</div>
 
                 <li class="nav-item @active("Users")">
@@ -64,104 +66,130 @@
 
             <hr class="sidebar-divider" />
 
-            <!-- Quản lý khám -->
-            <div class="sidebar-heading">Quản lý khám</div>
+            <!-- ======================= -->
+            <!-- QUẢN LÝ KHÁM (Doctor + Admin) -->
+            <!-- ======================= -->
+            @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
+            {
+                <div class="sidebar-heading">Quản lý khám</div>
 
-            <li class="nav-item @active("AppointmentSchedules")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="AppointmentSchedules" asp-action="Index">
-                    <i class="fas fa-fw fa-calendar-check"></i>
-                    <span>Lịch khám</span>
-                </a>
-            </li>
+                <li class="nav-item @active("AppointmentSchedules")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="AppointmentSchedules" asp-action="Index">
+                        <i class="fas fa-fw fa-calendar-check"></i>
+                        <span>Lịch khám</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("MedicalRecords")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="MedicalRecords" asp-action="Index">
-                    <i class="fas fa-fw fa-file-medical"></i>
-                    <span>Hồ sơ khám</span>
-                </a>
-            </li>
+                <li class="nav-item @active("MedicalRecords")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="MedicalRecords" asp-action="Index">
+                        <i class="fas fa-fw fa-file-medical"></i>
+                        <span>Hồ sơ khám</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("MedicalTests")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="MedicalTests" asp-action="Index">
-                    <i class="fas fa-fw fa-vials"></i>
-                    <span>Xét nghiệm</span>
-                </a>
-            </li>
+                <li class="nav-item @active("MedicalTests")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="MedicalTests" asp-action="Index">
+                        <i class="fas fa-fw fa-vials"></i>
+                        <span>Xét nghiệm</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("Prescriptions")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Prescriptions" asp-action="Index">
-                    <i class="fas fa-fw fa-prescription-bottle-alt"></i>
-                    <span>Toa thuốc</span>
-                </a>
-            </li>
+                <li class="nav-item @active("Prescriptions")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="Prescriptions" asp-action="Index">
+                        <i class="fas fa-fw fa-prescription-bottle-alt"></i>
+                        <span>Toa thuốc</span>
+                    </a>
+                </li>
 
-            <hr class="sidebar-divider" />
+                <hr class="sidebar-divider" />
+            }
 
-            <!-- Nhân sự & Bệnh nhân -->
-            <div class="sidebar-heading">Nhân sự & Bệnh nhân</div>
+            <!-- ======================= -->
+            <!-- RECEPTIONIST (Lễ tân)  -->
+            <!-- ======================= -->
+            @if (User.IsInRole("Receptionist"))
+            {
+                <div class="sidebar-heading">Tiếp nhận</div>
 
-            <li class="nav-item @active("Doctors")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Doctors" asp-action="Index">
-                    <i class="fas fa-fw fa-user-md"></i>
-                    <span>Bác sĩ</span>
-                </a>
-            </li>
+                <li class="nav-item @active("AppointmentSchedules")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="AppointmentSchedules" asp-action="Index">
+                        <i class="fas fa-fw fa-calendar-check"></i>
+                        <span>Lịch khám</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("Patients")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Patients" asp-action="Index">
-                    <i class="fas fa-fw fa-users"></i>
-                    <span>Bệnh nhân</span>
-                </a>
-            </li>
+                <li class="nav-item @active("Patients")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="Patients" asp-action="Index">
+                        <i class="fas fa-fw fa-users"></i>
+                        <span>Bệnh nhân</span>
+                    </a>
+                </li>
 
-            <hr class="sidebar-divider" />
+                <hr class="sidebar-divider" />
+            }
 
-            <!-- Danh mục nền -->
-            <div class="sidebar-heading">Danh mục nền</div>
+            <!-- ======================= -->
+            <!-- DANH MỤC NỀN (Admin Only) -->
+            <!-- ======================= -->
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="sidebar-heading">Danh mục nền</div>
 
-            <li class="nav-item @active("MedicalDepartments")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="MedicalDepartments" asp-action="Index">
-                    <i class="fas fa-fw fa-hospital"></i>
-                    <span>Khoa/Phòng ban</span>
-                </a>
-            </li>
+                <li class="nav-item @active("MedicalDepartments")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="MedicalDepartments" asp-action="Index">
+                        <i class="fas fa-fw fa-hospital"></i>
+                        <span>Khoa/Phòng ban</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("Services")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Services" asp-action="Index">
-                    <i class="fas fa-fw fa-stethoscope"></i>
-                    <span>Dịch vụ</span>
-                </a>
-            </li>
+                <li class="nav-item @active("Services")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="Services" asp-action="Index">
+                        <i class="fas fa-fw fa-stethoscope"></i>
+                        <span>Dịch vụ</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("Positions")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Positions" asp-action="Index">
-                    <i class="fas fa-fw fa-id-badge"></i>
-                    <span>Chức danh</span>
-                </a>
-            </li>
+                <li class="nav-item @active("Positions")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="Positions" asp-action="Index">
+                        <i class="fas fa-fw fa-id-badge"></i>
+                        <span>Chức danh</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("Expertises")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Expertises" asp-action="Index">
-                    <i class="fas fa-fw fa-book-medical"></i>
-                    <span>Chuyên môn</span>
-                </a>
-            </li>
+                <li class="nav-item @active("Expertises")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="Expertises" asp-action="Index">
+                        <i class="fas fa-fw fa-book-medical"></i>
+                        <span>Chuyên môn</span>
+                    </a>
+                </li>
 
-            <li class="nav-item @active("Medicines")">
-                <a class="nav-link" asp-area="Dashboard" asp-controller="Medicines" asp-action="Index">
-                    <i class="fas fa-fw fa-pills"></i>
-                    <span>Thuốc</span>
-                </a>
-            </li>
+                <li class="nav-item @active("Medicines")">
+                    <a class="nav-link" asp-area="Dashboard"
+                       asp-controller="Medicines" asp-action="Index">
+                        <i class="fas fa-fw fa-pills"></i>
+                        <span>Thuốc</span>
+                    </a>
+                </li>
+            }
 
             <hr class="sidebar-divider d-none d-md-block" />
 
-            <!-- Toggle -->
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
             </div>
+
         </ul>
-        <!-- End Sidebar -->
+
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
             <!-- Main Content -->
